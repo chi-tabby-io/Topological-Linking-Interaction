@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Ring Linking Calculation</title>
+        <script type="text/javascript" src="../libs/three.js"></script>
+        <script type="text/javascript" src="render.js"></script>
+        <style>
+            body {
+                /* set margin to 0 and overflow to hidden, to go fullscreen */
+                margin: 0;
+                overflow: hidden; 
+            }
+        </style>
+    </head>
+    <body>
+        <!-- div which will hold the output-->
+        <div id="WebGL-output"></div>
+        </div>
+        <script type="text/javascript">
+            function init() {
+                // create the scene. This will hold our polymers
+                var scene = new THREE.Scene();
+                // create the camera, which will be used to view our polymers
+                var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+                
+                // create RENDERER!!!
+                var webGLRenderer = new THREE.WebGLRenderer();
+                webGLRenderer.setClearColor(new THREE.Color(0x1, 1.0));
+                webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+                webGLRenderer.shadowMapEnabled = true;
+
+                // create some axes so that we can visually orient ourselves
+                var axes = new THREE.AxisHelper(10);
+                scene.add(axes);
+
+                // TODO: This is where we will create our ring-geometries from
+                // output data that Python gives us.
+
+                /* General strategy:
+                    1. create two arrays of vertices, with the special property 
+                       that the first and last vertices are the same (polygons)
+                    
+                    2. create two geometries, one for each polygon array,
+                       create a (special?) mesh for each polygon array geometry.
+                       (way to make the edges thicker, so they kind of look 
+                       more like polymers?)
+
+                    3. in the future:
+                       could interpolate curves between each point, though would 
+                       still end up with finite mesh. Would like smoother though
+                    */
+                
+                // circle is just to see how creating geometries, meshes, and
+                // rendering works in three.js
+
+                // create circle, place it, and make spotlight so we can see it
+                var circleGeometry = new THREE.CircleGeometry(4, 50, /*0.3 * Math.PI * 2, 0.3 * Math.PI * 2*/);
+                var circle = createMesh(circleGeometry);
+                // add the circle to the scene
+                scene.add(circle);
+
+                // position and point the camera to the center of the scene initially
+                camera.position.x = 0;
+                camera.position.y = 0;
+                camera.position.z = 75;
+                camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+
+                // add spotlight for the shadows
+                var spotLight = new THREE.SpotLight(0xffffff);
+                spotLight.position.set(-40, 60, -10);
+                scene.add(spotLight);
+                
+                // add the output of renderer to the html element
+                document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
+
+                // render the scene
+                webGLRenderer.render(scene, camera);
+            }
+
+            // this is the mesh which ig tells the renderer what to do with
+            // a given geometry
+            function createMesh(geometry) {
+                var geometryMaterial = new THREE.MeshBasicMaterial({color: 0xF6DBD5, wireframe: true});
+                var mesh = new THREE.Mesh(geometry, geometryMaterial);  
+
+                return mesh;
+            }
+
+            // get everything running when we (re)-load the page
+            window.onload = init;
+        </script>
+    </body>
+
+
+</html>
