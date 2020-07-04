@@ -9,6 +9,9 @@ def gen_all_bin_list(N):
 
 # helper function which recursively generates all possible binary lists
 # of a given length N
+# 
+# based off the algorithm at:
+# https://www.geeksforgeeks.org/generate-all-the-binary-strings-of-n-bits/
 def gen_bin_list_helper(N, all_poss, poss, i):
     if i == N:
         # make the necessary transformation (0, 1) -> (-1, 1) because
