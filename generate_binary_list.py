@@ -17,7 +17,7 @@ def gen_bin_list_helper(N, all_poss, poss, i):
         # make the necessary transformation (0, 1) -> (-1, 1) because
         # we are working with unit random walks
         poss = 2*poss - 1
-        # once we've reached the end of this possibility, at it to all
+        # once we've reached the end of this possibility, add it to all
         # possible list
         all_poss.append(poss)
         return
@@ -29,4 +29,3 @@ def gen_bin_list_helper(N, all_poss, poss, i):
     # compute all permutations with a 1 in the ith postion
     poss[i] = 1
     gen_bin_list_helper(N, all_poss, poss, i+1)
-
