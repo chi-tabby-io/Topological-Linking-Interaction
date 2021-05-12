@@ -52,14 +52,15 @@ function init() {
     chain_geometry.vertices.push(
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(-1, 1, 1),
-        new THREE.Vector3(-2, 2, 2),
-        new THREE.Vector3(-3, 1, 1),
-        new THREE.Vector3(-2, 0, 0),
-        new THREE.Vector3(-1, 1, 1),
-        new THREE.Vector3(0, 2, 0),
-        new THREE.Vector3(1, 1, -1),
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(-1, 1, 1),
+        new THREE.Vector3(-2, -2, -2),
+        new THREE.Vector3(-1, -1, -3),
+        new THREE.Vector3(-2, -2, -4),
+        new THREE.Vector3(-1, -1, -5),
+        new THREE.Vector3(0, 0, -4),
+        new THREE.Vector3(-1, 1, -3),
+        new THREE.Vector3(0, 2, -2),
+        new THREE.Vector3(-1, 1, -1),
+        new THREE.Vector3(0, 0, 0)
     )
 
     for (var j = 0; j < chain_geometry.vertices.length - 1; ++j) {
