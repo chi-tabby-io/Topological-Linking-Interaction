@@ -98,7 +98,6 @@ class NumpyArrayEncoder(json.JSONEncoder):
 # expected input: numpy ndarray
 def chain_to_JSON(chain, file_dumps=False):
     data = {"vertices": chain}
-    print("Serialized chain into JSON...")
 
     if file_dumps:
         filename = "vertex_array.json"

@@ -50,26 +50,40 @@ function init() {
     // goes to form the custom geometry
 
     fetch('/data_helper')
-    .then(function (response) {
+    .then(function (response) {  
         return response.json();
     }).then(function (json) {
+        // Report that we got the payload...
         console.log('GET response JSON:');
         console.log(json);
+        // Now do something with it
+        // somehow our json object magically became a string....
+        var obj = JSON.parse(json);
+        var vertexArray = obj.vertices;
+        chain_geometry.vertices
+        for (let i in vertexArray) {
+            chain_geometry.vertices.push(
+                new THREE.Vector3(vertexArray[i][0], vertexArray[i][1], 
+                                  vertexArray[i][2])
+            );
+        }
     });
+    
+    console.log(chain_geometry.vertices);
+    // chain_geometry.vertices.push(
+    //     new THREE.Vector3(0, 0, 0),
+    //     new THREE.Vector3(-1, 1, 1),
+    //     new THREE.Vector3(-2, -2, -2),
+    //     new THREE.Vector3(-1, -1, -3),
+    //     new THREE.Vector3(-2, -2, -4),
+    //     new THREE.Vector3(-1, -1, -5),
+    //     new THREE.Vector3(0, 0, -4),
+    //     new THREE.Vector3(-1, 1, -3),
+    //     new THREE.Vector3(0, 2, -2),
+    //     new THREE.Vector3(-1, 1, -1),
+    //     new THREE.Vector3(0, 0, 0)
+    // )
 
-    chain_geometry.vertices.push(
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(-1, 1, 1),
-        new THREE.Vector3(-2, -2, -2),
-        new THREE.Vector3(-1, -1, -3),
-        new THREE.Vector3(-2, -2, -4),
-        new THREE.Vector3(-1, -1, -5),
-        new THREE.Vector3(0, 0, -4),
-        new THREE.Vector3(-1, 1, -3),
-        new THREE.Vector3(0, 2, -2),
-        new THREE.Vector3(-1, 1, -1),
-        new THREE.Vector3(0, 0, 0)
-    )
 
     for (var j = 0; j < chain_geometry.vertices.length - 1; ++j) {
         var path = new THREE.SplineCurve3([chain_geometry.vertices[j], chain_geometry.vertices[j + 1]]);
