@@ -12,7 +12,7 @@ def data_helper():
     
     # GET request
     else:
-        N = 10
+        N = 20
         payload = chain_to_JSON(generate_closed_chain(N)[0])
         return jsonify(payload) # serialize and use JSON headers
 

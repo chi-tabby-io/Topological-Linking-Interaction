@@ -60,16 +60,26 @@ function init() {
         // somehow our json object magically became a string....
         var obj = JSON.parse(json);
         var vertexArray = obj.vertices;
-        chain_geometry.vertices
         for (let i in vertexArray) {
             chain_geometry.vertices.push(
                 new THREE.Vector3(vertexArray[i][0], vertexArray[i][1], 
                                   vertexArray[i][2])
             );
         }
+        // add the final link. should do this in back-end though
+        chain_geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+        
+        // now create the mesh
+        for (var j = 0; j < chain_geometry.vertices.length - 1; ++j) {
+            var path = new THREE.SplineCurve3([chain_geometry.vertices[j], chain_geometry.vertices[j + 1]]);
+            var tube = new THREE.TubeGeometry(path, 1, 0.04);
+            var material = new THREE.MeshPhongMaterial({color: 0xcccccc});
+            var mesh = new THREE.Mesh(tube, material);
+            group.add(mesh);
+        }
     });
     
-    console.log(chain_geometry.vertices);
+    // console.log(chain_geometry.vertices);
     // chain_geometry.vertices.push(
     //     new THREE.Vector3(0, 0, 0),
     //     new THREE.Vector3(-1, 1, 1),
@@ -85,13 +95,13 @@ function init() {
     // )
 
 
-    for (var j = 0; j < chain_geometry.vertices.length - 1; ++j) {
-        var path = new THREE.SplineCurve3([chain_geometry.vertices[j], chain_geometry.vertices[j + 1]]);
-        var tube = new THREE.TubeGeometry(path, 1, 0.04);
-        var material = new THREE.MeshPhongMaterial({color: 0xcccccc});
-        var mesh = new THREE.Mesh(tube, material);
-        group.add(mesh);
-    }
+    // for (var j = 0; j < chain_geometry.vertices.length - 1; ++j) {
+    //     var path = new THREE.SplineCurve3([chain_geometry.vertices[j], chain_geometry.vertices[j + 1]]);
+    //     var tube = new THREE.TubeGeometry(path, 1, 0.04);
+    //     var material = new THREE.MeshPhongMaterial({color: 0xcccccc});
+    //     var mesh = new THREE.Mesh(tube, material);
+    //     group.add(mesh);
+    // }
 
     scene.add(group);
 
