@@ -3,7 +3,7 @@
 # # The length of every polymer is the same: we will use three experimental
 # # cases: N = 20, 40, 60, and 80
 # global N, trials
-N = 10
+# N = 10
 # trials = 100
 
 # if __name__ == "__main__":

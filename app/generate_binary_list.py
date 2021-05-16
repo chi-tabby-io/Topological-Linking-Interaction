@@ -1,4 +1,4 @@
-from app import numpy as np
+import numpy as np
 
 # for ease of use, the exported function
 def gen_all_bin_list(N):

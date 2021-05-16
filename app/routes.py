@@ -1,5 +1,4 @@
 from .generate_chain import generate_closed_chain, chain_to_JSON
-from .driver import N
 from flask import jsonify, request, render_template
 from app import app
 
@@ -13,8 +12,9 @@ def data_helper():
     
     # GET request
     else:
-        payload = chain_to_JSON(generate_closed_chain(N))
-        return jsonify(payload)
+        N = 10
+        payload = chain_to_JSON(generate_closed_chain(N)[0])
+        return jsonify(payload) # serialize and use JSON headers
 
 @app.route('/')
 @app.route('/index')

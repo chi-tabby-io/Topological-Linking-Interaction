@@ -84,9 +84,9 @@ def generate_closed_chain(N):
         chain = generate_chain(N)
         attempts += 1
 
-    print(chain)
+    # print(chain)
     # chain_to_JSON(chain)
-    return np.array([chain, attempts])
+    return np.array([chain, attempts], dtype=object)
 
 class NumpyArrayEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -96,14 +96,22 @@ class NumpyArrayEncoder(json.JSONEncoder):
 
 # TODO: alter to fit the three.js object/scene JSON format
 # expected input: numpy ndarray
-def chain_to_JSON(chain):
+def chain_to_JSON(chain, file_dumps=False):
     data = {"vertices": chain}
+    print("Serialized chain into JSON...")
 
-    print("serialize NumPy array into JSON and write into a file")
-    # write to file 'chain.json'
-    with open("vertex_array.json", "w") as ofile:
-        json.dump(data, ofile, cls=NumpyArrayEncoder)
-    print("Done writing serialized NumPy array into file")
+    if file_dumps:
+        filename = "vertex_array.json"
+        print("Serializing NumPy array into {}...".format(filename))
+        # write to file 'chain.json'
+        with open(filename, "w") as ofile:
+            json.dump(data, ofile, cls=NumpyArrayEncoder)
+        print("Done writing serialized NumPy array into {}.".format(filename))
+        return ""
+
+    else:
+        print("Dumping NumPy Array into JSON string...")
+        return json.dumps(data, cls=NumpyArrayEncoder)
 
 
 # detects whether is self-intersecting iff there exist two of the same vertex

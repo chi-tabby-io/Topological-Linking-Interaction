@@ -2,8 +2,8 @@
 <html>
     <head>
         <title>Ring Linking Calculation</title>
-        <script type="text/javascript" src="/libs/three.js"></script>
-        <script type="text/javascript" src="/libs/OrbitControls.js"></script> 
+        <script type="text/javascript" src="{{url_for('static', filename='libs/three.js')}}"></script>
+        <script type="text/javascript" src="{{url_for('static', filename='libs/OrbitControls.js')}}"></script> 
         <style>
             body {
                 /* set margin to 0 and overflow to hidden, to go fullscreen */
@@ -16,6 +16,15 @@
         <!-- div which will hold the output-->
         <div id="WebGL-output"></div>
         </div>
-        <script type="module" src="/app/main.js"></script>
+        <!-- <script>
+            fetch('/data_helper')
+                .then(function (response) {
+                    return response.json();
+                }).then(function (json) {
+                    console.log('GET response JSON:');
+                    console.log(json);
+            });
+        </script> -->
+        <script type="module" src="{{url_for('static', filename='main.js')}}"></script>
     </body>
 </html>
