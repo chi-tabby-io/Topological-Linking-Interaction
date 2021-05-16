@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from generate_binary_list import gen_all_bin_list
+from .generate_binary_list import gen_all_bin_list
 
 # This file implements our closed chain alg
 sqrt_3 = 1.7320508075688772 # the distance between each link

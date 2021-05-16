@@ -1,10 +1,9 @@
-from generate_chain import generate_closed_chain, chain_to_JSON
-from driver import N
-from flask import Flask, jsonify, request, render_template
-app = Flask(__name__)
+from .generate_chain import generate_closed_chain, chain_to_JSON
+from .driver import N
+from flask import jsonify, request, render_template
+from app import app
 
-@app.route('/hello', methods=['GET', 'POST'])
-
+@app.route('/data_helper', methods=['GET', 'POST'])
 def data_helper():
     #POST request
     if request.method == 'POST':
@@ -17,7 +16,8 @@ def data_helper():
         payload = chain_to_JSON(generate_closed_chain(N))
         return jsonify(payload)
 
-@app.route('/test')
-def test_page():
+@app.route('/')
+@app.route('/index')
+def index():
     # look inside 'templates' and serve 'index.html'
     return render_template('index.html')
