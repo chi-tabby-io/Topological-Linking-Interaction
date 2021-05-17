@@ -13,7 +13,9 @@ def data_helper():
     
     # GET request
     else:
-        N = 20
+        # current algorithm takes about 10-30s to generate closed,
+        # non-intersecting chain of length 50 (05/16/2021)
+        N = 50
         payload = chain_to_JSON(generate_closed_chain(N)[0])
         return jsonify(payload) # serialize and use JSON headers
 

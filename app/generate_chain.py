@@ -52,9 +52,11 @@ def generate_chain(N):
     poss_dirs = []
     # the loop which will generate and add each node to our chain
     for i in np.arange(2, N):
-        # TODO: add weights to choice according to pdf discussed above
 
-        new_dir = dirs[np.random.randint(dirs.shape[0])]     
+        # TODO: test prob dist!!!
+
+        new_dir = dirs[np.random.choice(dirs.shape[0], 
+                       p=special_prob_dist(N-i, node, dirs))]     
                                                                                                                                            
         # exclude directions which are inverse of previous direction
         # (this would guarantee a self-intersection)
@@ -76,11 +78,26 @@ def generate_chain(N):
 
     return np.array(chain)
 
+
+# return weights for chosen directions given a prob dist (see ref paper)
+def special_prob_dist(n, node, dirs):
+    probs = []
+    # for each direction, assign a unique probability of being chosen
+    for i in np.arange(dirs.shape[0]):
+        p = 1.
+        for j in np.arange(dirs[i].shape[0]):
+            p *= (n - dirs[j]*node[j]) / 2*n
+        probs.append(p)
+
+    return np.array(probs)
+
+
 def is_closed(chain):
     if abs(np.linalg.norm(chain[0] - chain[chain.shape[0]-1]) - sqrt_3) < epsilon:
         return True
     else:
         return False
+
 
 # essentially uses the functions above as helpers to generate a closed chain
 def generate_closed_chain(N):
@@ -98,7 +115,8 @@ def generate_closed_chain(N):
             attempts +=1
         attempts += 1
 
-        
+    print(" took " + str(attempts) + " attempts to generate closed chain")
+    
     return np.array([chain, attempts], dtype=object)
 
 
