@@ -7,6 +7,14 @@ sqrt_3 = 1.7320508075688772 # the distance between each link
 epsilon = 1.e-12
 dirs = gen_all_bin_list(3)
 
+def normalize_elems(array):
+    for i in np.arange(array.shape[0]):
+        array[i] = array[i] / np.linalg.norm(array[i])
+    return array
+
+# only need this functionality if implementing face-centered vertices
+# dirs = normalize_elems(dirs)
+
 # assume shape of arr is (n, m)
 def index_of(seq, arr):
     for i in np.arange(arr.shape[0]):
@@ -34,7 +42,7 @@ def generate_chain(N):
     # initialize first node at the origin
     node = np.zeros(3)
     chain = []
-    # ad the initial node and second node to our chain
+    # add the initial node and second node to our chain
     chain.append(node)
     dir_id = np.random.randint(dirs.shape[0])
     dir = dirs[dir_id]
@@ -46,7 +54,8 @@ def generate_chain(N):
     for i in np.arange(2, N):
         # TODO: add weights to choice according to pdf discussed above
 
-        new_dir = dirs[np.random.randint(dirs.shape[0])]
+        new_dir = dirs[np.random.randint(dirs.shape[0])]     
+                                                                                                                                           
         # exclude directions which are inverse of previous direction
         # (this would guarantee a self-intersection)
         while np.array_equal(dir + new_dir, np.zeros(3)):
@@ -58,6 +67,7 @@ def generate_chain(N):
         # something is wrong
         if dir_id == -1:
             raise IndexError("The direction could not be found.")
+        
         # vector addition of node and the chosen dir makes a new node
         node = np.add(node, dir)
         # add the new node to our chain
@@ -77,16 +87,20 @@ def generate_closed_chain(N):
     
     chain = generate_chain(N)
 
-    # this step may take a while...but our pdf gives us a greater chance
-    # that the randomly generated chain will be closed, once implemented
+    # this step may take a while...but our pdf, once implemented, gives us a
+    # greater chance that the randomly generated chain will be closed
+    # Note that attempts is for testing the efficiency of our alg
     attempts = 0
     while not is_closed(chain):
         chain = generate_chain(N)
+        while is_self_intersecting(chain):
+            chain = generate_chain(N)
+            attempts +=1
         attempts += 1
 
-    # print(chain)
-    # chain_to_JSON(chain)
+        
     return np.array([chain, attempts], dtype=object)
+
 
 class NumpyArrayEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -94,7 +108,7 @@ class NumpyArrayEncoder(json.JSONEncoder):
             return obj.tolist()
         return json.JSONEncoder.default(self.obj)
 
-# TODO: alter to fit the three.js object/scene JSON format
+
 # expected input: numpy ndarray
 def chain_to_JSON(chain, file_dumps=False):
     data = {"vertices": chain}
@@ -114,7 +128,6 @@ def chain_to_JSON(chain, file_dumps=False):
 
 
 # detects whether is self-intersecting iff there exist two of the same vertex
-# TODO: do entire array checks: if already exists in array, do not choose it.
 def is_self_intersecting(chain):
     unique = np.unique(chain, axis=0)
     if chain.shape[0] != unique.shape[0]:

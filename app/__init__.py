@@ -2,8 +2,7 @@ from flask import Flask
 
 app = Flask(__name__)
 
-from app import routes
+# for now set the configuration to debug.
+app.config['DEBUG'] = True
 
-# from .driver import driver
-# from .generate_binary_list import generate_binary_list
-# from .generate_chain import generate_chain
+from app import routes

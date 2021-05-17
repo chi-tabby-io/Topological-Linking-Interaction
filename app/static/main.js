@@ -1,5 +1,3 @@
-//import {OrbitControls} from '../libs/OrbitalControls.js';
-
 var scene, renderer, camera;
 var controls;
 
@@ -46,8 +44,6 @@ function init() {
     var group = new THREE.Object3D();
     var chain_geometry = new THREE.Geometry();
 
-    // from a sample run of driver.py: will be where actual data
-    // goes to form the custom geometry
 
     fetch('/data_helper')
     .then(function (response) {  
@@ -78,30 +74,7 @@ function init() {
             group.add(mesh);
         }
     });
-    
-    // console.log(chain_geometry.vertices);
-    // chain_geometry.vertices.push(
-    //     new THREE.Vector3(0, 0, 0),
-    //     new THREE.Vector3(-1, 1, 1),
-    //     new THREE.Vector3(-2, -2, -2),
-    //     new THREE.Vector3(-1, -1, -3),
-    //     new THREE.Vector3(-2, -2, -4),
-    //     new THREE.Vector3(-1, -1, -5),
-    //     new THREE.Vector3(0, 0, -4),
-    //     new THREE.Vector3(-1, 1, -3),
-    //     new THREE.Vector3(0, 2, -2),
-    //     new THREE.Vector3(-1, 1, -1),
-    //     new THREE.Vector3(0, 0, 0)
-    // )
 
-
-    // for (var j = 0; j < chain_geometry.vertices.length - 1; ++j) {
-    //     var path = new THREE.SplineCurve3([chain_geometry.vertices[j], chain_geometry.vertices[j + 1]]);
-    //     var tube = new THREE.TubeGeometry(path, 1, 0.04);
-    //     var material = new THREE.MeshPhongMaterial({color: 0xcccccc});
-    //     var mesh = new THREE.Mesh(tube, material);
-    //     group.add(mesh);
-    // }
 
     scene.add(group);
 

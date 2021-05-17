@@ -2,6 +2,7 @@ from .generate_chain import generate_closed_chain, chain_to_JSON
 from flask import jsonify, request, render_template
 from app import app
 
+
 @app.route('/data_helper', methods=['GET', 'POST'])
 def data_helper():
     #POST request
@@ -15,6 +16,7 @@ def data_helper():
         N = 20
         payload = chain_to_JSON(generate_closed_chain(N)[0])
         return jsonify(payload) # serialize and use JSON headers
+
 
 @app.route('/')
 @app.route('/index')
