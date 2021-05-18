@@ -63,7 +63,7 @@ function init() {
             );
         }
         // add the final link. should do this in back-end though
-        chain_geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+        // chain_geometry.vertices.push(new THREE.Vector3(0, 0, 0));
         
         // now create the mesh
         for (var j = 0; j < chain_geometry.vertices.length - 1; ++j) {

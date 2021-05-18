@@ -42,39 +42,34 @@ def generate_chain(N):
     # initialize first node at the origin
     node = np.zeros(3)
     chain = []
-    # add the initial node and second node to our chain
-    chain.append(node)
-    dir_id = np.random.randint(dirs.shape[0])
-    dir = dirs[dir_id]
-    node = np.add(node, dir)
+    # add the initial node to our chain
     chain.append(node)
 
-    poss_dirs = []
+    dir = np.zeros(3)
     # the loop which will generate and add each node to our chain
-    for i in np.arange(2, N):
+    for i in np.arange(1, N):
 
         # TODO: test prob dist!!!
 
+        new_dir = dirs[np.random.randint(dirs.shape[0])]
+        probs = special_prob_dist(N-i, node, dirs)
+        print(probs)
         new_dir = dirs[np.random.choice(dirs.shape[0], 
-                       p=special_prob_dist(N-i, node, dirs))]     
+                       p=probs)]     
                                                                                                                                            
         # exclude directions which are inverse of previous direction
         # (this would guarantee a self-intersection)
         while np.array_equal(dir + new_dir, np.zeros(3)):
-            new_dir = dirs[np.random.randint(dirs.shape[0])]
+            probs = special_prob_dist(N-i, node, dirs)
+            new_dir = dirs[np.random.choice(dirs.shape[0], 
+                       p=probs)]
+            #new_dir = dirs[np.random.randint(dirs.shape[0])]
 
-        # re-assign the index of this direction so that we don't accidentally
-        # choose it in the next pass
-        dir_id = index_of(dir, dirs)
-        # something is wrong
-        if dir_id == -1:
-            raise IndexError("The direction could not be found.")
-        
+        dir = new_dir
         # vector addition of node and the chosen dir makes a new node
         node = np.add(node, dir)
         # add the new node to our chain
         chain.append(node)
-        dir = new_dir
 
     return np.array(chain)
 
@@ -86,7 +81,7 @@ def special_prob_dist(n, node, dirs):
     for i in np.arange(dirs.shape[0]):
         p = 1.
         for j in np.arange(dirs[i].shape[0]):
-            p *= (n - dirs[j]*node[j]) / 2*n
+            p *= (n - dirs[i][j]*node[j]) / (2*n)
         probs.append(p)
 
     return np.array(probs)
