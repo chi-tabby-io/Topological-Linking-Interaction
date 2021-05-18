@@ -27,16 +27,11 @@ def index_of(seq, arr):
 #               
 #            P(n, r, delta) = Prod_k((n-delta_k*x_k)/(2n))
 # 
-# Where n represents...I want to say the number of links left until we get to 
-# the end of the chain. r is the position vector of the current node (I think) 
-# and delta is a vector governing the direction to the next link
+# Where n representsthe number of links left until we get to 
+# the end of the chain. r is the position vector of the current node
+# and delta is a vector governing the direction to the next node
 # 
-# The polymer is generated on a "body-centered" lattice (easier to see once
-# we visualize in three.js)
-# 
-# TODO: look-up how to construct a non-self-intersecting chain. I have taken
-# care of the case when we move back to the previous node, but I take that as
-# a trivial case for ensuring non-self-intersection
+# The polymer is generated on a "body-centered" lattice
 
 def generate_chain(N):
     # initialize first node at the origin
@@ -52,19 +47,19 @@ def generate_chain(N):
         # TODO: test prob dist!!!
 
         new_dir = dirs[np.random.randint(dirs.shape[0])]
-        probs = special_prob_dist(N-i, node, dirs)
-        print(probs)
-        new_dir = dirs[np.random.choice(dirs.shape[0], 
-                       p=probs)]     
+        # probs = special_prob_dist(N-i, node, dirs)
+        # print(probs)
+        # new_dir = dirs[np.random.choice(dirs.shape[0], 
+        #                p=probs)]     
                                                                                                                                            
         # exclude directions which are inverse of previous direction
         # (this would guarantee a self-intersection)
         while np.array_equal(dir + new_dir, np.zeros(3)):
-            probs = special_prob_dist(N-i, node, dirs)
-            new_dir = dirs[np.random.choice(dirs.shape[0], 
-                       p=probs)]
-            #new_dir = dirs[np.random.randint(dirs.shape[0])]
+            # new_dir = dirs[np.random.choice(dirs.shape[0], 
+            #            p=probs)]
+            new_dir = dirs[np.random.randint(dirs.shape[0])]
 
+        # update the direction
         dir = new_dir
         # vector addition of node and the chosen dir makes a new node
         node = np.add(node, dir)
@@ -103,11 +98,9 @@ def generate_closed_chain(N):
     # greater chance that the randomly generated chain will be closed
     # Note that attempts is for testing the efficiency of our alg
     attempts = 0
-    while not is_closed(chain):
+    
+    while not is_closed(chain) or is_self_intersecting(chain):
         chain = generate_chain(N)
-        while is_self_intersecting(chain):
-            chain = generate_chain(N)
-            attempts +=1
         attempts += 1
 
     print(" took " + str(attempts) + " attempts to generate closed chain")
