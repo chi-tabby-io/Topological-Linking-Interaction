@@ -75,6 +75,7 @@ def special_prob_dist(n, node, dirs):
     # for each direction, assign a unique probability of being chosen
     for i in np.arange(dirs.shape[0]):
         p = 1.
+        # loop over all coordinates
         for j in np.arange(dirs[i].shape[0]):
             p *= (n - dirs[i][j]*node[j]) / (2*n)
         probs.append(p)
@@ -103,6 +104,7 @@ def generate_closed_chain(N):
         chain = generate_chain(N)
         attempts += 1
 
+    chain = np.append(chain, np.zeros(3).reshape(1,3), axis=0)
     print(" took " + str(attempts) + " attempts to generate closed chain")
     
     return np.array([chain, attempts], dtype=object)
