@@ -44,20 +44,21 @@ def generate_chain(N):
     # the loop which will generate and add each node to our chain
     for i in np.arange(1, N):
 
-        # TODO: test prob dist!!!
-
-        new_dir = dirs[np.random.randint(dirs.shape[0])]
-        # probs = special_prob_dist(N-i, node, dirs)
-        # print(probs)
-        # new_dir = dirs[np.random.choice(dirs.shape[0], 
-        #                p=probs)]     
+        # new_dir = dirs[np.random.randint(dirs.shape[0])]
+        probs = special_prob_dist(N-i, node, dirs)
+        print("node {} has probs for next dir: {}".format(i+1,probs))
+        if i == N - 1:
+            new_dir = dirs[np.where(probs == np.max(probs))]
+        else:
+            new_dir = dirs[np.random.choice(dirs.shape[0], 
+                       p=probs)]     
                                                                                                                                            
         # exclude directions which are inverse of previous direction
         # (this would guarantee a self-intersection)
         while np.array_equal(dir + new_dir, np.zeros(3)):
-            # new_dir = dirs[np.random.choice(dirs.shape[0], 
-            #            p=probs)]
-            new_dir = dirs[np.random.randint(dirs.shape[0])]
+            new_dir = dirs[np.random.choice(dirs.shape[0], 
+                       p=probs)]
+            # new_dir = dirs[np.random.randint(dirs.shape[0])]
 
         # update the direction
         dir = new_dir
