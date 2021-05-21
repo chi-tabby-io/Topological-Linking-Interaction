@@ -46,16 +46,15 @@ def generate_chain(N):
 
         # new_dir = dirs[np.random.randint(dirs.shape[0])]
         probs = special_prob_dist(N-i, node, dirs)
-        print("node {} has probs for next dir: {}".format(i+1,probs))
-        if i == N - 1:
-            new_dir = dirs[np.where(probs == np.max(probs))]
-        else:
-            new_dir = dirs[np.random.choice(dirs.shape[0], 
-                       p=probs)]     
+        # print("node {} has probs for next dir: {}".format(i+1,probs))
+        new_dir = dirs[np.random.choice(dirs.shape[0], 
+                    p=probs)]     
                                                                                                                                            
         # exclude directions which are inverse of previous direction
         # (this would guarantee a self-intersection)
         while np.array_equal(dir + new_dir, np.zeros(3)):
+            if i == N - 1 and not is_closed(np.array(chain)):
+               break 
             new_dir = dirs[np.random.choice(dirs.shape[0], 
                        p=probs)]
             # new_dir = dirs[np.random.randint(dirs.shape[0])]
@@ -79,9 +78,15 @@ def special_prob_dist(n, node, dirs):
         # loop over all coordinates
         for j in np.arange(dirs[i].shape[0]):
             p *= (n - dirs[i][j]*node[j]) / (2*n)
+            if p < 0:
+                p = 0
         probs.append(p)
 
-    return np.array(probs)
+    probs = np.array(probs)
+    # if had to make any probs 0, must renormalize
+    if np.any(probs[:] == 0):
+        probs = probs / sum(probs)
+    return probs
 
 
 def is_closed(chain):
@@ -104,6 +109,8 @@ def generate_closed_chain(N):
     while not is_closed(chain) or is_self_intersecting(chain):
         chain = generate_chain(N)
         attempts += 1
+        if attempts % 100 == 0:
+            print(attempts)
 
     chain = np.append(chain, np.zeros(3).reshape(1,3), axis=0)
     print(" took " + str(attempts) + " attempts to generate closed chain")
