@@ -33,6 +33,8 @@ def index_of(seq, arr):
 # 
 # The polymer is generated on a "body-centered" lattice
 
+# NOTE: generates a chain according to the probability dist. Does not test if
+# is closed nor whether is self-intersecting.
 def generate_chain(N):
     # initialize first node at the origin
     node = np.zeros(3)
@@ -48,17 +50,15 @@ def generate_chain(N):
         probs = special_prob_dist(N-i, node, dirs)
         # print("node {} has probs for next dir: {}".format(i+1,probs))
         new_dir = dirs[np.random.choice(dirs.shape[0], 
-                    p=probs)]     
-                                                                                                                                           
-        # exclude directions which are inverse of previous direction
-        # (this would guarantee a self-intersection)
+                    p=probs)]  
+        # backwards movements are prohibited  
         while np.array_equal(dir + new_dir, np.zeros(3)):
-            if i == N - 1 and not is_closed(np.array(chain)):
-               break 
+            # print(probs[index_of(dir, dirs)])
+            if abs(probs[index_of(new_dir, dirs)] - 1.0) < epsilon:
+                break
             new_dir = dirs[np.random.choice(dirs.shape[0], 
-                       p=probs)]
-            # new_dir = dirs[np.random.randint(dirs.shape[0])]
-
+                                p=probs)]
+        #NOTE: may be the case that only possible choice is one left over!
         # update the direction
         dir = new_dir
         # vector addition of node and the chosen dir makes a new node
@@ -109,11 +109,11 @@ def generate_closed_chain(N):
     while not is_closed(chain) or is_self_intersecting(chain):
         chain = generate_chain(N)
         attempts += 1
-        if attempts % 100 == 0:
-            print(attempts)
+        if attempts % 50 == 0:
+            print("Current number of attempts:" + str(attempts))
 
     chain = np.append(chain, np.zeros(3).reshape(1,3), axis=0)
-    print(" took " + str(attempts) + " attempts to generate closed chain")
+    print("Took " + str(attempts) + " attempts to generate closed chain")
     
     return np.array([chain, attempts], dtype=object)
 
