@@ -1,5 +1,5 @@
 from .generate_chain import generate_closed_chain, chain_to_JSON
-from .projection import find_reg_project_rotate
+from .projection import pre_reg_project
 from flask import jsonify, request, render_template
 from app import app
 
@@ -20,8 +20,8 @@ def data_helper():
         #FURTHER NOTE: a knot will NOT form if N <= 23
         N = 24
         saw = generate_closed_chain(N)[0]
-        rot_saw = find_reg_project_rotate(saw)
-        payload = chain_to_JSON(rot_saw)
+        xy_project = pre_reg_project(saw)
+        payload = chain_to_JSON(xy_project)
         return jsonify(payload) # serialize and use JSON headers
 
 

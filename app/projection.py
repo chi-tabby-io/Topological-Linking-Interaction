@@ -70,8 +70,10 @@ def find_reg_project_com(saw):
     return projection
 
 
-"""finds regular projection via the rotation by an irrational angle method"""
-def find_reg_project_rotate(saw):
+"""prepares a saw so that it may be projected into the xy plane via art setting 
+   z-comp of every vertex to zero. We don't actually do that here, but instead,
+   rotate the saw so that such a projection will be regular """
+def pre_reg_project(saw):
     # using negative pi / 3 rad so that we rotate axes counterclockwise
     alpha = -np.pi / 3.
     x_rot = rot_matrix_x(alpha)
