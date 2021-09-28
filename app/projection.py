@@ -1,6 +1,13 @@
 import numpy as np
 from numpy.linalg import norm
 
+"""rotates about the x-axis in a counterclockwise fashion by angle alpha
+   (also rotates the axes clockwise by angle alpha"""
+def rot_matrix_x(alpha):
+    return np.array([[1., 0., 0.],
+                      [0., np.cos(alpha), -np.sin(alpha)],
+                      [0., np.sin(alpha), np.cos(alpha)]])
+
 """is_reg_projection determines whether the given projection is a regular 
    projection of the given saw. This means two things:
    
@@ -51,7 +58,7 @@ def com_projection(saw, k, k_1):
 """find_reg_project finds a regular projection of the given simple random walk.
    If none can be found, returns None, else returns the given projection as the
    array of points in three space."""
-def find_reg_project(saw):
+def find_reg_project_com(saw):
     L = saw.shape[0]
     projection = None
     for i in np.range(L):
@@ -61,5 +68,23 @@ def find_reg_project(saw):
     if not is_regular_projection(projection):
         projection = None
     return projection
+
+
+"""finds regular projection via the rotation by an irrational angle method"""
+def find_reg_project_rotate(saw):
+    # using negative pi / 3 rad so that we rotate axes counterclockwise
+    alpha = -np.pi / 3.
+    x_rot = rot_matrix_x(alpha)
+
+    rot_saw = []
+    for vertex in saw:
+        rot_vertex = np.matmul(x_rot, vertex)
+        #project to xy plane :)
+        rot_vertex[2] = 0.
+        rot_saw.append(rot_vertex)
+    
+    rot_saw = np.array(rot_saw)
+
+    return rot_saw
     
         
