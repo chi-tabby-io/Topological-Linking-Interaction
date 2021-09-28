@@ -1,5 +1,6 @@
 import numpy as np
 from .generate_chain import generate_closed_chain, chain_to_JSON, is_self_intersecting
+
 # The length of every polymer is the same: we will use three experimental
 # cases: N = 20, 40, 60, and 80
 
