@@ -1,5 +1,6 @@
 from .generate_chain import generate_closed_chain, chain_to_JSON
 from .projection import pre_reg_project
+from .intersect_unit_test import intersect_unit_test
 from flask import jsonify, request, render_template
 from app import app
 
@@ -21,6 +22,7 @@ def data_helper():
         N = 24
         saw = generate_closed_chain(N)[0]
         xy_project = pre_reg_project(saw)
+        intersect_unit_test()
         payload = chain_to_JSON(xy_project)
         return jsonify(payload)  # serialize and use JSON headers
 
