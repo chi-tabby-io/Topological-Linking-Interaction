@@ -11,6 +11,7 @@ def validate_intersect_in_segment(p0, p1, p2, p3, p4):
    or not by attempting to find their intersection. Assume all points are 
    in R2"""
 
+# using # https://www.geeksforgeeks.org/program-for-point-of-intersection-of-two-lines/
 def find_intersection_2D(p1, p2, p3, p4):
    a1 = p2[1] - p1[1]
    b1 = p1[0] - p2[0]
@@ -44,8 +45,6 @@ def find_intersection_2D(p1, p2, p3, p4):
 
 
 def collect_underpass_info(saw, projection):
-    # TODO: 1.)use this to find intersections
-    # https://www.geeksforgeeks.org/program-for-point-of-intersection-of-two-lines/
-    #       2.) determine how, from the found intersections, we can find overpass
+    # TODO: 1.) determine how, from the found intersections, we can find overpass
     #       versus underpass.
     return None
