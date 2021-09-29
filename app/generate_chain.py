@@ -4,74 +4,92 @@ from .generate_binary_list import gen_all_bin_list
 
 # This file implements our closed chain alg
 sqrt_3 = 1.7320508075688772  # the distance between each link
-epsilon = 1.0e-12
-dirs = gen_all_bin_list(3)
+epsilon = 1.0e-12 # convenient small value for double comparison
+dirs = gen_all_bin_list(3) # all possible directions in cubic lattice
 
 
 def normalize_elems(array):
+    """return normalized version of array, using vector 2-norm."""
     for i in np.arange(array.shape[0]):
         array[i] = array[i] / np.linalg.norm(array[i])
     return array
 
 
-# only need this functionality if implementing face-centered vertices
-# dirs = normalize_elems(dirs)
-
 # assume shape of arr is (n, m)
 def index_of(seq, arr):
+    """return index of a subarray within given array, if it exists."""
     for i in np.arange(arr.shape[0]):
         if np.array_equal(seq, arr[i]):
             return i
     return -1
 
 
-# generates a polymer of length N. May or may not be closed. The probability
-# that the polymer is closed is given by the distribution function:
-#
-#            P(n, r, delta) = Prod_k((n-delta_k*x_k)/(2n))
-#
-# Where n representsthe number of links left until we get to
-# the end of the chain. r is the position vector of the current node
-# and delta is a vector governing the direction to the next node
-#
-# The polymer is generated on a "body-centered" lattice
-
 # NOTE: generates a chain according to the probability dist. Does not test if
 # is closed nor whether is self-intersecting.
 def generate_chain(N):
-    # initialize first node at the origin
-    node = np.zeros(3)
+    """return a random walk 'chain' with N nodes.
+    
+    The method uses the 'worm in an apple' approach to generate the chain,
+    forbidding moving in the reverse direction along which it arrived to the
+    current node. The method also uses a special probability distribution to
+    increase the chance of ring closure. The resulting set of all produced
+    random walks is not normally distributed, so care must be taken when 
+    statistics are run on chains produced from this algorithm.
+    
+    arguments:
+    N - int - the length of the desired chain
+    
+    return value:
+    chain - numpy array of nodes with shape (N, 3) - the generated random walk
+    """
+    node = np.zeros(3) # initialize first node at the origin
     chain = []
-    # add the initial node to our chain
-    chain.append(node)
+    chain.append(node) # add the initial node to our chain
 
-    dir = np.zeros(3)
-    # the loop which will generate and add each node to our chain
+    dir = np.zeros(3) # initialize dir array before loop
     for i in np.arange(1, N):
-
-        # new_dir = dirs[np.random.randint(dirs.shape[0])]
         probs = special_prob_dist(N - i, node, dirs)
-        # print("node {} has probs for next dir: {}".format(i+1,probs))
         new_dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
         # backwards movements are prohibited
         while np.array_equal(dir + new_dir, np.zeros(3)):
-            # print(probs[index_of(dir, dirs)])
             if abs(probs[index_of(new_dir, dirs)] - 1.0) < epsilon:
                 break
             new_dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
-        # NOTE: may be the case that only possible choice is one left over!
-        # update the direction
         dir = new_dir
         # vector addition of node and the chosen dir makes a new node
         node = np.add(node, dir)
-        # add the new node to our chain
-        chain.append(node)
+        chain.append(node) # add the new node to our chain
 
     return np.array(chain)
 
 
 # return weights for chosen directions given a prob dist (see ref paper)
 def special_prob_dist(n, node, dirs):
+    """return array of probs for all possible directions at a given step.
+    
+    This function is used in the context of generate_chain only. It computes
+    the probabilities associated with each possible direction in the
+    body-centered lattice, dependent on where we are along the total length
+    of the generated chain. This is to make it more likely that the chain
+    so-generated returns to the starting point.
+    
+    Some difficulties to overcome were the edge-cases where when we are only a 
+    few steps away from the origin, the only way to close the chain is to move
+    backward. We brute-force through this issue by letting the chain be
+    generated anyway, letting the chain be rejected in the generate_closed_chain
+    function.
+    
+    arguments:
+    n - int - the length of the chain that will be generated
+    node - numpy array with shape (3, 1) - the current node
+    dirs - numpy array with shape (8, 3) - set of all directions in 
+    body-centered lattice
+    
+    return value:
+    probs - numpy array with shape (8, 1) - probabilities associated with
+    dirs, which will be used to choose the direction for the chain to travel
+    in the next step.
+    """
     probs = []
     # for each direction, assign a unique probability of being chosen
     for i in np.arange(dirs.shape[0]):

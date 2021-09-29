@@ -1,7 +1,7 @@
 import numpy as np
 
-# for ease of use, the exported function
 def gen_all_bin_list(N):
+    """return numpy array of all binary lists of length N."""
     all_poss = []
     poss = np.empty(N)
     gen_bin_list_helper(N, all_poss, poss, 0)
@@ -14,6 +14,20 @@ def gen_all_bin_list(N):
 # based off the algorithm at:
 # https://www.geeksforgeeks.org/generate-all-the-binary-strings-of-n-bits/
 def gen_bin_list_helper(N, all_poss, poss, i):
+    """populates array all_poss with all binary lists of length N
+    
+    This function implements the recursive algorithm from here:
+    https://www.geeksforgeeks.org/generate-all-the-binary-strings-of-n-bits/.
+
+    arguments:
+    N - int - the length of each binary list
+    all_poss - list - the list to be populated with binary lists
+    poss - numpy array - array of possible binary values
+    i - int - an index indicating which position in each list we should populate
+
+    return value:
+    None
+    """
     if i == N:
         # make the necessary transformation (0, 1) -> (-1, 1) because
         # we are working with unit random walks
