@@ -23,7 +23,6 @@ def find_intersection_2D(p1, p2, p3, p4):
 
    det = a1*b2 - a2*b1
    if det == 0: # lines are parallel, no intersection
-      print("det zero wha wha")
       return None
    else:
       x = (c1*b2 - c2*b1) / det
