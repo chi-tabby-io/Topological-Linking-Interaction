@@ -1,5 +1,5 @@
 import numpy as np
-
+eps = 1.0e-12 # convenient small value for double comparison
 
 def validate_intersect_in_segment(p0, p1, p2):
    """return True if p0 in bounding box of p1 and p2, else return False."""
@@ -54,6 +54,16 @@ def find_intersection_2D(p1, p2, p3, p4):
          return intersect
       else: return None
 
+# eqns for lines in 3D found here: https://byjus.com/maths/equation-line/
+def is_underpass(k, j, intersect, saw):
+   pk = saw[k]
+   pk_1 = saw[k+1]
+   pj = saw[j]
+   pj_1 = saw[j+1]
+   zk = pk[3] + (pk_1[3] - pk[3])*(intersect[0] - pk[0]) / (pk_1[0] - pk[0])
+   zj = pj[3] + (pj_1[3] - pj[3])*(intersect[0] - pj[0]) / (pj_1[0] - pj[0])
+   return True if (zj - zk > eps) else False
+   
 
 """Traverses a saw *prepared for projection into the xy plane,* assigning double 
    points to be either 'overcrossings' or 'undercrossings'"""
@@ -63,7 +73,33 @@ def find_intersection_2D(p1, p2, p3, p4):
    'k' is the number of intersections, and is also the length of said array """
 
 
-def collect_underpass_info(saw, projection):
-    # TODO: 1.) determine how, from the found intersections, we can find overpass
-    #       versus underpass.
-    return None
+def collect_underpass_info(saw, proj):
+   underpass_info = []
+   for k in np.arange(proj.shape[0]-1):
+      temp_index_array = np.arange(proj.shape[0])
+      pre_j = temp_index_array[:k]
+      post_j_1 = temp_index_array[k+2:]
+      temp_index_array = np.concatenate((pre_j,post_j_1), axis=None)
+      for j in temp_index_array:
+         pk = proj[k][:2]
+         pk_1 = proj[k+1][:2]
+         pj = proj[j][:2]
+         pj_1 = proj[j+1][:2]
+         intersect = find_intersection_2D(pk, pk_1, pj, pj_1)
+         if intersect is not None:
+            if is_underpass(k, j, intersect, saw):
+               info = []
+               v1 = np.subtract(pk, pj)
+               v2 = np.subtract(pk, pk_1)
+               if np.cross(v1, v2) == 1: # Type I
+                  info.append[0]
+               else: # Type II
+                  info.append[1]
+               info.append[k]
+               underpass_info.append(info)
+   
+   return np.array(underpass_info)
+
+
+def populate_alexander_matrix(saw):
+   return None
