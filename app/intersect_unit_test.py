@@ -1,9 +1,10 @@
-from .alexander import find_intersection_2D
 import numpy as np
+
+from .alexander import find_intersection_2D
 
 
 def intersect_unit_test():
-    # define points: NOTE: this case is for parallel lines
+    """Return None. Test entire find_intersection_2D function"""
     A = np.array([2.,0.])
     B = np.array([2., 2.])
     C = np.array([0., 2.])

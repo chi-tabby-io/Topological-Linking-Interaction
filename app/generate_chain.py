@@ -1,8 +1,9 @@
 import json
+
 import numpy as np
+
 from .generate_binary_list import gen_all_bin_list
 
-# This file implements our closed chain alg
 sqrt_3 = 1.7320508075688772  # the distance between each link
 epsilon = 1.0e-12 # convenient small value for double comparison
 dirs = gen_all_bin_list(3) # all possible directions in cubic lattice

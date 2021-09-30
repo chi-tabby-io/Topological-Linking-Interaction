@@ -6,6 +6,7 @@ from numpy.linalg import norm
 
 
 def rot_matrix_x(alpha):
+    """return rotation matrix about x-axis by angle alpha"""
     return np.array(
         [
             [1.0, 0.0, 0.0],
@@ -25,6 +26,21 @@ def rot_matrix_x(alpha):
 
 
 def is_reg_projection(projection, saw):
+    """return True if projection is a regular projection of saw, else False.
+    
+    A projection of a SAW is regular if it satisfies the following two conditions:
+    1) no three points of the saw (which includes points in the edges) may 
+        project to the same point and
+    2) no vertex may project to the same point as any other point within the saw
+    
+    arguments:
+    projection - numpy array of shape (N, 2) - the projection of the SAW
+    saw - numpy array of shape (N, 3) - the SAW we are doing analysis on
+    
+    return value:
+    so far None (unimplemented)
+    """
+    #TODO: implement, to test functionality of com_projection
     return None
 
 
@@ -40,6 +56,23 @@ def is_reg_projection(projection, saw):
 
 
 def com_projection(saw, k, k_1):
+    """return numpy array of projection using com, pk, and pk_1 as ref points.
+    
+    The method computes the center of mass of the saw, assuming all nodes
+    have unit mass. It then projects each point of the SAW to the plane
+    defined by points com, pk, and pk_1 along the normal to the plane.
+    This function may be redundant given the rotational method below.
+    
+    arguments:
+    saw - numpy array of shape (N, 3) - the saw we are finding projection of
+    k - int - index of point pk in saw
+    k_1 - int - index of point pk_1 in the saw (I include it here so that we wrap
+    back to the original node of the saw in the outer function find_reg_project_com,
+    not here)
+    
+    return value:
+    projection - numpy array of shape (N, 2) - the com projection sought after
+    """
     com = np.zeroes(3)
     L = saw.shape[0]
 
@@ -74,6 +107,22 @@ def com_projection(saw, k, k_1):
 
 
 def find_reg_project_com(saw):
+    """return regular projection of saw.
+    
+    uses the com_projection method to search for a regular projection within
+    the set of planes defined by the com, and all adjacent points (pk, pk_1) in
+    the saw, including the last and first points. Just in-case this isn't always
+    possible, returns None
+    
+    argument:
+    saw - numpy array of shape (N, 3) - the SAW which we wish to find a com 
+    projection from
+    
+    return values:
+    projection - numpy array of shape (N, 2) - the regular projection of the SAW,
+    if it exists
+    None - if the regular projection via the com method does not exist
+    """
     L = saw.shape[0]
     projection = None
     for i in np.range(L):
@@ -90,18 +139,32 @@ def find_reg_project_com(saw):
    rotate the saw so that such a projection will be regular """
 
 
-def pre_reg_project(saw):
-    # using negative pi / 3 rad so that we rotate axes counterclockwise
+def find_reg_project_rot(saw):
+    """return regular projection of SAW via rotation by irrational angle.
+    
+    I like this one. Finds a regular projection of the SAW by rotating 
+    the axes CCW (or conversely, by rotating the SAW CW) by an irrational
+    angle, thus guaranteeing that no multiple points are triple, and that
+    no two vertices are projected to the same point (vertices are at most
+    single points).
+
+    (Note that the angle is completely arbitrary, so I chose PI/3)
+    
+    argument:
+    saw - numpy array of shape (N, 3) - the SAW which we wish to find a com
+    
+    return value:
+    projection - numpy array of shape (N, 2) - the projection of the saw
+    """
     alpha = -np.pi / 3.0
     x_rot = rot_matrix_x(alpha)
 
-    rot_saw = []
+    projection = []
     for vertex in saw:
         rot_vertex = np.matmul(x_rot, vertex)
-        # project to xy plane :)
-        rot_vertex[2] = 0.0
-        rot_saw.append(rot_vertex)
+        rot_vertex[2] = 0.0 # project to xy plane :)
+        projection.append(rot_vertex)
 
-    rot_saw = np.array(rot_saw)
+    projection = np.array(projection)
 
-    return rot_saw
+    return projection

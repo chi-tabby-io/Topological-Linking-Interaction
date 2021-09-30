@@ -1,4 +1,5 @@
 import numpy as np
+
 eps = 1.0e-12 # convenient small value for double comparison
 
 def validate_intersect_in_segment(p0, p1, p2):
@@ -54,8 +55,26 @@ def find_intersection_2D(p1, p2, p3, p4):
          return intersect
       else: return None
 
-# eqns for lines in 3D found here: https://byjus.com/maths/equation-line/
+
 def is_underpass(k, j, intersect, saw):
+   """return True if segment pkpk_1 is an underpass of pjpj_1, else return False.
+   
+   This method assumes that intersect is a valid intersection for the line 
+   segments pkpk_1 and pjpj_1. It then uses the eqns for a line in 3D found
+   here: https://byjus.com/maths/equation-line/ to calculate the z-value
+   of the corresponding point in the SAW to determine whether pkpk+1 is
+   an underpass or not.
+   
+   arguments:
+   k - int - the index of node pk within the SAW
+   j - int the index of node pj within the SAW
+   intersect - numpy array with shape (2,1) - the intersection within the projection,
+   with format (x, y)
+   saw - numpy array with shape (N, 3) - the SAW where underpasses will be found from
+   
+   return value:
+   boolean - True if pkpk_1 is an underpass, else False
+   """
    pk = saw[k]
    pk_1 = saw[k+1]
    pj = saw[j]
@@ -65,17 +84,28 @@ def is_underpass(k, j, intersect, saw):
    return True if (zj - zk > eps) else False
    
 
-"""Traverses a saw *prepared for projection into the xy plane,* assigning double 
-   points to be either 'overcrossings' or 'undercrossings'"""
-
-"""collect_underpass_info collects the following information, and returns it
-   as an ordered array: (underpass_type(int {0,1}, generator_num(int,{k})) where 
-   'k' is the number of intersections, and is also the length of said array """
-
-
 def collect_underpass_info(saw, proj):
+   """return numpy array with underpass type and index of generator.
+   
+   This function collects the necessary topological information about the
+   SAW in order to populate its Alexander Matrix. The two pieces of 
+   information are the corresponding overpass generator index (same as the
+   index of the underpass) and the underpasse's type (type I or type II), 
+   codified as either 0 or 1.
+   
+   arguments:
+   saw - numpy array with shape (N, 3) - the SAW where underpasses will be found from
+   proj - numpy array with shape (N, 2) - the regular projection used to find intersections
+   
+   return value:
+   underpass_info - numpy array of shape (I, 2) - the array of information for each underpass.
+   I is the number of underpasses (not known a priori) The format for each subarray is
+   [{0|1}, {k}] where k runs from zero to I - 1.
+   """
    underpass_info = []
    for k in np.arange(proj.shape[0]-1):
+      # collecting pre and post j, j+1 information so we loop through every node except those
+      # with index j and j+1
       temp_index_array = np.arange(proj.shape[0])
       pre_j = temp_index_array[:k]
       post_j_1 = temp_index_array[k+2:]

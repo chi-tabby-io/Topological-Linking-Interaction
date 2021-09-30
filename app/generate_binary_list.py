@@ -8,11 +8,6 @@ def gen_all_bin_list(N):
     return np.array(all_poss)
 
 
-# helper function which recursively generates all possible binary lists
-# of a given length N
-#
-# based off the algorithm at:
-# https://www.geeksforgeeks.org/generate-all-the-binary-strings-of-n-bits/
 def gen_bin_list_helper(N, all_poss, poss, i):
     """populates array all_poss with all binary lists of length N
     
