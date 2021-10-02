@@ -102,7 +102,12 @@ def collect_underpass_info(saw, proj):
    I is the number of underpasses (not known a priori) The format for each subarray is
    [{0|1}, {k}] where k runs from zero to I - 1.
    """
+   # FIXME: assigning overpass number to k is WRONG!!! 
    underpass_info = []
+   underpass_hash = []
+   overpass_hash = []
+   under_index = 0
+   over_index = 0
    for k in np.arange(proj.shape[0]-1):
       # collecting pre and post j, j+1 information so we loop through every node except those
       # with index j and j+1
@@ -125,11 +130,41 @@ def collect_underpass_info(saw, proj):
                   info.append[0]
                else: # Type II
                   info.append[1]
-               info.append[k]
+               # info.append[k]
+               underpass_hash.append([under_index, intersect])
+               under_index += 1
+               # check overpass hash for same intersect, if exists, put overpass
+               # index into underpass_info
                underpass_info.append(info)
+            else:
+               overpass_hash.append([over_index, intersect])
+               over_index += 1
+               # check underpass hash for the same intersect, if exists, put
+               # that overpass index into underpass_info
    
+   # let's re-do the overpass assignment:
+   # run through 
    return np.array(underpass_info)
 
 
-def populate_alexander_matrix(saw):
-   return None
+def populate_alexander_matrix(saw, proj, t):
+
+   underpass_info = collect_underpass_info(saw, proj)
+   I = np.shape(underpass_info)[0]
+   alex_mat = np.zeroes((I, I))
+
+   for k in np.arange(I):
+      if underpass_info[k, 1] == k:
+         alex_mat[k, k] = -1
+      elif underpass_info[k, 1] == k+1:
+         alex_mat[k, k+1] = 1
+      else:
+         if underpass_info[k, 0] == 0: # Type I
+            alex_mat[k, k] = 1
+            alex_mat[k, k+1] = -t
+         else: # Type II
+            alex_mat[k, k] = -t
+            alex_mat[k, k+1] = 1
+         alex_mat[k, underpass_info[k, 1]] = t - 1
+
+   return alex_mat
