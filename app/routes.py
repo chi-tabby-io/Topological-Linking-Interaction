@@ -2,6 +2,7 @@ from flask import jsonify, render_template, request
 
 from app import app
 
+from .collect_underpass_unit_test import collect_underpass_unit_test
 from .generate_chain import chain_to_JSON, generate_closed_chain
 from .intersect_unit_test import intersect_unit_test
 from .projection import find_reg_project_rot
@@ -28,6 +29,7 @@ def data_helper():
         N = 24 # the length of the SAW - definitely not the best place to put this
         saw = generate_closed_chain(N)[0]
         xy_project = find_reg_project_rot(saw)
+        collect_underpass_unit_test()
         payload = chain_to_JSON(xy_project)
         return jsonify(payload)  # serialize and use JSON headers
 

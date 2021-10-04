@@ -44,17 +44,6 @@ def is_reg_projection(projection, saw):
     return None
 
 
-"""com_projection calculates the projection of the given saw onto the plane
-   defined by the three points in the set {p_com, xi, xi1}, where 
-   
-   p_com == the coordinates of the 'center of mass' of the saw, assuming the 
-            mass of the edges is negligible and the vertices are particles of 
-            unit mass
-            
-    xi == the ith vertex of the saw
-    xi1 == the i+1th vertex of the saw"""
-
-
 def com_projection(saw, k, k_1):
     """return numpy array of projection using com, pk, and pk_1 as ref points.
     
