@@ -84,30 +84,22 @@ def is_underpass(k, j, intersect, saw):
    return True if (zj - zk > eps) else False
    
 
+def pre_alexander_compile(saw, proj):
+   underpass_info = collect_underpass_info(saw, proj)
+   overpasses = collect_overpass_intersects(saw, proj)
+   out = []
+   for k in np.arange(np.shape(underpass_info)[0]):
+      for i in np.arange(np.shape(overpasses)[0]):
+         # may have to set a tolerance on this, even though, theoretically,
+         # the intersection should be the same
+         if np.array_equal(underpass_info[k, 1], overpasses[i]):
+            out.append([underpass_info[k, 0], i])
+   return np.array(out)
+
+
 def collect_underpass_info(saw, proj):
-   """return numpy array with underpass type and index of generator.
-   
-   This function collects the necessary topological information about the
-   SAW in order to populate its Alexander Matrix. The two pieces of 
-   information are the corresponding overpass generator index (same as the
-   index of the underpass) and the underpasse's type (type I or type II), 
-   codified as either 0 or 1.
-   
-   arguments:
-   saw - numpy array with shape (N, 3) - the SAW where underpasses will be found from
-   proj - numpy array with shape (N, 2) - the regular projection used to find intersections
-   
-   return value:
-   underpass_info - numpy array of shape (I, 2) - the array of information for each underpass.
-   I is the number of underpasses (not known a priori) The format for each subarray is
-   [{0|1}, {k}] where k runs from zero to I - 1.
-   """
-   # FIXME: assigning overpass number to k is WRONG!!! 
    underpass_info = []
-   underpass_hash = []
-   overpass_hash = []
-   under_index = 0
-   over_index = 0
+
    for k in np.arange(proj.shape[0]-1):
       # collecting pre and post j, j+1 information so we loop through every node except those
       # with index j and j+1
@@ -130,21 +122,33 @@ def collect_underpass_info(saw, proj):
                   info.append[0]
                else: # Type II
                   info.append[1]
-               # info.append[k]
-               underpass_hash.append([under_index, intersect])
-               under_index += 1
-               # check overpass hash for same intersect, if exists, put overpass
-               # index into underpass_info
+               info.append(intersect)
                underpass_info.append(info)
-            else:
-               overpass_hash.append([over_index, intersect])
-               over_index += 1
-               # check underpass hash for the same intersect, if exists, put
-               # that overpass index into underpass_info
-   
-   # let's re-do the overpass assignment:
-   # run through 
+
    return np.array(underpass_info)
+
+
+def collect_overpass_intersects(saw, proj):
+   overpass_info = []
+   
+   for i in np.arange(proj.shape[0]-1):
+      # collecting pre and post j, j+1 information so we loop through every node except those
+      # with index j and j+1
+      temp_index_array = np.arange(proj.shape[0])
+      pre_j = temp_index_array[:i]
+      post_j_1 = temp_index_array[i+2:]
+      temp_index_array = np.concatenate((pre_j,post_j_1), axis=None)
+      for j in temp_index_array:
+         pk = proj[i][:2]
+         pk_1 = proj[i+1][:2]
+         pj = proj[j][:2]
+         pj_1 = proj[j+1][:2]
+         intersect = find_intersection_2D(pk, pk_1, pj, pj_1)
+         if intersect is not None:
+            if not is_underpass(i, j, intersect, saw):
+               overpass_info.append(intersect)
+
+   return np.array(overpass_info)
 
 
 def populate_alexander_matrix(saw, proj, t):
