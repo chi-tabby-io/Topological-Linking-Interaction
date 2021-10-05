@@ -29,13 +29,11 @@ def data_helper():
         # FURTHER NOTE: a knot will NOT form if N <= 23
         # N = 8 # the length of the SAW - definitely not the best place to put this
         # saw = generate_closed_chain(N)[0]
-        saw = np.array([[0.0, 0.0, 0.0],[1.3660254037844386, -1.0, 0.0],
-                            [0.9999999999999999, 0.0, 0.0],[0.6339745962155612, -1.0, 0.0],
-                            [0.26794919243112236, 0.0, 0.0],[0.6339745962155612, 1.0, 0.0],
-                            [-0.7320508075688775, 0.0, 0.0],[-0.36602540378443876, 1.0, 0.0],
-                            [0.0, 0.0, 0.0]])
+        saw = np.array([[0.,0.,0.],[0.,1.,0.],[0.,2.,0.],[0.,2.,1.],
+                             [0.,2.,2.],[0.,1.,2.],[0.,0.,2.],[0.,0.,1.],
+                             [0.,0.,0.]])
         xy_project = find_reg_project_rot(saw)
-        collect_underpass_unit_test()
+        #collect_underpass_unit_test()
         payload = chain_to_JSON(xy_project)
         return jsonify(payload)  # serialize and use JSON headers
 
