@@ -75,12 +75,13 @@ def is_underpass(k, j, intersect, saw):
    return value:
    boolean - True if pkpk_1 is an underpass, else False
    """
+
    pk = saw[k]
    pk_1 = saw[k+1]
    pj = saw[j]
    pj_1 = saw[j+1]
-   zk = pk[3] + (pk_1[3] - pk[3])*(intersect[0] - pk[0]) / (pk_1[0] - pk[0])
-   zj = pj[3] + (pj_1[3] - pj[3])*(intersect[0] - pj[0]) / (pj_1[0] - pj[0])
+   zk = pk[2] + (pk_1[2] - pk[2])*(intersect[0] - pk[0]) / (pk_1[0] - pk[0])
+   zj = pj[2] + (pj_1[2] - pj[2])*(intersect[0] - pj[0]) / (pj_1[0] - pj[0])
    return True if (zj - zk > eps) else False
    
 
@@ -103,11 +104,13 @@ def collect_underpass_info(saw, proj):
    for k in np.arange(proj.shape[0]-1):
       # collecting pre and post j, j+1 information so we loop through every node except those
       # with index j and j+1
-      temp_index_array = np.arange(proj.shape[0])
-      pre_j = temp_index_array[:k]
-      post_j_1 = temp_index_array[k+2:]
-      temp_index_array = np.concatenate((pre_j,post_j_1), axis=None)
-      for j in temp_index_array:
+      # temp_index_array = np.arange(proj.shape[0])
+      # pre_j = temp_index_array[:k]
+      # post_j_1 = temp_index_array[k+2:]
+      # temp_index_array = np.concatenate((pre_j,post_j_1), axis=None)
+      for j in np.arange(proj.shape[0]-1):
+         if j == k-1 or j == k or j == k+1:
+            continue
          pk = proj[k][:2]
          pk_1 = proj[k+1][:2]
          pj = proj[j][:2]
@@ -119,13 +122,13 @@ def collect_underpass_info(saw, proj):
                v1 = np.subtract(pk, pj)
                v2 = np.subtract(pk, pk_1)
                if np.cross(v1, v2) == 1: # Type I
-                  info.append[0]
+                  info.append(0)
                else: # Type II
-                  info.append[1]
+                  info.append(1)
                info.append(intersect)
                underpass_info.append(info)
 
-   return np.array(underpass_info)
+   return np.array(underpass_info,dtype=object)
 
 
 def collect_overpass_intersects(saw, proj):

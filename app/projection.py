@@ -16,6 +16,16 @@ def rot_matrix_x(alpha):
     )
 
 
+def rot_matrix_y(alpha):
+    """return rotation matrix about Y-axis by angle alpha"""
+    return np.array(
+        [
+            [np.cos(alpha), 0.0, np.sin(alpha)],
+            [0.0, 1.0, 0.0],
+            [-np.sin(alpha), 0.0, np.cos(alpha)],
+        ]
+    )
+
 """is_reg_projection determines whether the given projection is a regular 
    projection of the given saw. This means two things:
    
@@ -128,6 +138,19 @@ def find_reg_project_com(saw):
    rotate the saw so that such a projection will be regular """
 
 
+
+def rot_saw_xy(saw):
+    alpha = -np.pi / 3.0
+    beta = np.pi / 6.0
+    x_rot = rot_matrix_x(alpha)
+    y_rot = rot_matrix_y(beta)
+    rotated_saw = []
+    for vertex in saw:
+        rot_vertex = np.matmul(x_rot, vertex)
+        rot_vertex = np.matmul(y_rot, vertex)
+        rotated_saw.append(rot_vertex)
+    return rotated_saw
+
 def find_reg_project_rot(saw):
     """return regular projection of SAW via rotation by irrational angle.
     
@@ -138,6 +161,7 @@ def find_reg_project_rot(saw):
     single points).
 
     (Note that the angle is completely arbitrary, so I chose PI/3)
+    (CHANGELOG: added second y-rotation by pi / 6 on 10/04/2021)
     
     argument:
     saw - numpy array of shape (N, 3) - the SAW which we wish to find a com
@@ -145,14 +169,12 @@ def find_reg_project_rot(saw):
     return value:
     projection - numpy array of shape (N, 2) - the projection of the saw
     """
-    alpha = -np.pi / 3.0
-    x_rot = rot_matrix_x(alpha)
-
+    rotated_saw = rot_saw_xy(saw)
     projection = []
-    for vertex in saw:
-        rot_vertex = np.matmul(x_rot, vertex)
-        rot_vertex[2] = 0.0 # project to xy plane :)
-        projection.append(rot_vertex)
+    for vertex in rotated_saw:
+        project_vertex = vertex
+        project_vertex[2] = 0.0 # project to xy plane :)
+        projection.append(project_vertex)
 
     projection = np.array(projection)
 
