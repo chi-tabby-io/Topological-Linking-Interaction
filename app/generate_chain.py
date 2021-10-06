@@ -154,7 +154,8 @@ def chain_to_JSON(chain, file_dumps=False):
         print("Serializing NumPy array into {}...".format(filename))
         # write to file 'chain.json'
         with open(filename, "w") as ofile:
-            json.dump(data, ofile, cls=NumpyArrayEncoder)
+            data_to_str = json.dumps(data)
+            json.dump(data_to_str, ofile, cls=NumpyArrayEncoder)
         print("Done writing serialized NumPy array into {}.".format(filename))
         return ""
 
