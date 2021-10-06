@@ -2,10 +2,14 @@ import numpy as np
 
 eps = 1.0e-12 # convenient small value for double comparison
 
-def validate_intersect_in_segment(p0, p1, p2):
-   """return True if p0 in bounding box of p1 and p2, else return False."""
-   return True if min(p1[0], p2[0]) <= p0[0] <= max(p1[0], p2[0]) and \
-          min(p1[1], p2[1]) <= p0[1] <= max(p1[1], p2[1]) else False
+def validate_intersect_in_segments(p0, p1, p2, p3, p4):
+   """return True if p0 in bounding box of p1p2 AND p3p4, else return False."""
+   in_line_1 = min(p1[0], p2[0]) < p0[0] < max(p1[0], p2[0]) and \
+          min(p1[1], p2[1]) < p0[1] < max(p1[1], p2[1])
+   in_line_2 = min(p3[0], p4[0]) < p0[0] < max(p3[0], p4[0]) and \
+          min(p3[1], p4[1]) < p0[1] < max(p3[1], p4[1])
+   
+   return True if (in_line_1 and in_line_2) else False
 
 
 # algorithm from: https://www.geeksforgeeks.org/program-for-point-of-intersection-of-two-lines/
@@ -51,9 +55,11 @@ def find_intersection_2D(p1, p2, p3, p4):
 
       intersect = np.array([x, y])
 
-      if validate_intersect_in_segment(intersect, p1, p2):
-         return intersect
-      else: return None
+      return intersect # not validating here... do in is_underpass
+
+      # if validate_intersect_in_segment(intersect, p1, p2):
+      #    return intersect
+      # else: return None
 
 
 def is_underpass(k, j, intersect, saw):
@@ -75,14 +81,16 @@ def is_underpass(k, j, intersect, saw):
    return value:
    boolean - True if pkpk_1 is an underpass, else False
    """
-
    pk = saw[k]
    pk_1 = saw[k+1]
    pj = saw[j]
    pj_1 = saw[j+1]
-   zk = pk[2] + (pk_1[2] - pk[2])*(intersect[0] - pk[0]) / (pk_1[0] - pk[0])
-   zj = pj[2] + (pj_1[2] - pj[2])*(intersect[0] - pj[0]) / (pj_1[0] - pj[0])
-   return True if (zj - zk > eps) else False
+
+   if validate_intersect_in_segments(intersect, pk, pk_1, pj, pj_1):
+      zk = pk[2] + (pk_1[2] - pk[2])*(intersect[0] - pk[0]) / (pk_1[0] - pk[0])
+      zj = pj[2] + (pj_1[2] - pj[2])*(intersect[0] - pj[0]) / (pj_1[0] - pj[0])
+      return True if (zj - zk > eps) else False
+   else: return False
    
 
 def pre_alexander_compile(saw, proj):

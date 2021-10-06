@@ -6,7 +6,7 @@ from app import app
 from .collect_underpass_unit_test import collect_underpass_unit_test
 from .generate_chain import chain_to_JSON, generate_closed_chain
 from .intersect_unit_test import intersect_unit_test
-from .projection import find_reg_project_rot
+from .projection import find_reg_project_rot, rot_saw_xy
 
 
 @app.route("/data_helper", methods=["GET", "POST"])
@@ -27,14 +27,14 @@ def data_helper():
         # non-intersecting chain of length 50 (05/16/2021)
         # NOTE: just don't put odd inputs O_O
         # FURTHER NOTE: a knot will NOT form if N <= 23
-        # N = 8 # the length of the SAW - definitely not the best place to put this
-        # saw = generate_closed_chain(N)[0]
-        saw = np.array([[0.,0.,0.],[0.,1.,0.],[0.,2.,0.],[0.,2.,1.],
-                             [0.,2.,2.],[0.,1.,2.],[0.,0.,2.],[0.,0.,1.],
-                             [0.,0.,0.]])
+        N = 8 # the length of the SAW - definitely not the best place to put this
+        #saw = generate_closed_chain(N)[0]
+        saw = np.array([[0.0, 0.0, 0.0], [-1.0, 1.0, 1.0], [-2.0, 2.0, 2.0], [-3.0, 1.0, 1.0], [-2.0, 2.0, 0.0], [-3.0, 1.0, -1.0], [-2.0, 0.0, 0.0], [-1.0, -1.0, 1.0], [0.0, 0.0, 0.0]])
+        #saw = rot_saw_xy(saw)
         xy_project = find_reg_project_rot(saw)
-        #collect_underpass_unit_test()
+        collect_underpass_unit_test()
         payload = chain_to_JSON(xy_project)
+        #payload = chain_to_JSON(saw)
         return jsonify(payload)  # serialize and use JSON headers
 
 

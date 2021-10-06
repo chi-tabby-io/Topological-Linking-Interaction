@@ -10,7 +10,7 @@ function init() {
     camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
 
     // create RENDERER!!!
-    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setClearColor(new THREE.Color(0x1, 1.0));
     renderer.setSize(width, height);
     renderer.shadowMapEnabled = true; //not sure what this does
@@ -46,35 +46,34 @@ function init() {
 
 
     fetch('/data_helper')
-    .then(function (response) {  
-        return response.json();
-    }).then(function (json) {
-        // Report that we got the payload...
-        console.log('GET response JSON:');
-        console.log(json);
-        // Now do something with it
-        // somehow our json object magically became a string....
-        var obj = JSON.parse(json);
-        var vertexArray = obj.vertices;
-        for (let i in vertexArray) {
-            chain_geometry.vertices.push(
-                new THREE.Vector3(vertexArray[i][0], vertexArray[i][1], 
-                                  vertexArray[i][2])
-            );
-        }
-        
-        // now create the mesh
-        for (var j = 0; j < chain_geometry.vertices.length - 1; ++j) {
-            var path = new THREE.SplineCurve3([chain_geometry.vertices[j], chain_geometry.vertices[j + 1]]);
-            var tube = new THREE.TubeGeometry(path, 1, 0.04);
-            var material = new THREE.MeshPhongMaterial({color: 0xcccccc});
-            var mesh = new THREE.Mesh(tube, material);
-            group.add(mesh);
-        }
-    });
+        .then(function (response) {
+            return response.json();
+        }).then(function (json) {
+            // Report that we got the payload...
+            console.log('GET response JSON:');
+            console.log(json);
+            // Now do something with it
+            // somehow our json object magically became a string....
+            var obj = JSON.parse(json);
+            var vertexArray = obj.vertices;
+            for (let i in vertexArray) {
+                chain_geometry.vertices.push(
+                    new THREE.Vector3(vertexArray[i][0], vertexArray[i][1],
+                        vertexArray[i][2])
+                );
+            }
 
+            // now create the mesh
+            for (var j = 0; j < chain_geometry.vertices.length - 1; ++j) {
+                var path = new THREE.SplineCurve3([chain_geometry.vertices[j], chain_geometry.vertices[j + 1]]);
+                var tube = new THREE.TubeGeometry(path, 1, 0.04);
+                var material = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+                var mesh = new THREE.Mesh(tube, material);
+                group.add(mesh);
+            }
+            scene.add(group);
+        });
 
-    scene.add(group);
 
     // position and point the camera to the center of the scene initially
     camera.position.x = 6;
@@ -88,7 +87,7 @@ function init() {
     var spotLight = new THREE.SpotLight(0xffffff);
     spotLight.position.set(-40, 60, -10);
     scene.add(spotLight);
-    
+
     // add the output of renderer to the html element
 
     // // render the scene
@@ -98,8 +97,8 @@ function init() {
 // this is the mesh which ig tells the renderer what to do with
 // a given geometry
 function createMesh(geometry) {
-    var geometryMaterial = new THREE.MeshBasicMaterial({color: 0xF6DBD5, wireframe: true});
-    var mesh = new THREE.Mesh(geometry, geometryMaterial);  
+    var geometryMaterial = new THREE.MeshBasicMaterial({ color: 0xF6DBD5, wireframe: true });
+    var mesh = new THREE.Mesh(geometry, geometryMaterial);
 
     return mesh;
 }
