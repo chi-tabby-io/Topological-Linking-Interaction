@@ -16,16 +16,15 @@ def validate_intersect_in_segments(p0, p1, p2, p3, p4):
 def find_intersection_2D(p1, p2, p3, p4):
    """from line segments p1p2 and p3p4, return the intersection if it exists.
    
-   Also determines whether the intersection lies on the line segment p1p2 (this
-   is sufficient for determining whether the intersection lies within both
-   line segments.
-
    The pair of lines is modeled as a linear system of the following form:
 
       a1*x + b1*y = c1
       a2*x + b2*y = c2
 
    and is solved via Cramer's Rule
+
+   Here we also validate whether the intersection, if so found, exists within
+   both line segments or not.
    
    arguments:
    p1 - numpy array of doubles with shape (2,1) - first point of line segment p1p2
@@ -55,28 +54,28 @@ def find_intersection_2D(p1, p2, p3, p4):
 
       intersect = np.array([x, y])
 
-      return intersect # not validating here... do in is_underpass
-
-      # if validate_intersect_in_segment(intersect, p1, p2):
-      #    return intersect
-      # else: return None
+      if validate_intersect_in_segments(intersect, p1, p2, p3, p4):
+         return intersect
+      else: return None # not validating here... do in is_underpass
 
 
 def is_underpass(k, j, intersect, saw):
+   # TODO: test again, ensure working after moving validation in segment
+   # bit back to find intersection function
    """return True if segment pkpk_1 is an underpass of pjpj_1, else return False.
    
-   This method assumes that intersect is a valid intersection for the line 
-   segments pkpk_1 and pjpj_1. It then uses the eqns for a line in 3D found
+   This method uses the eqns for a line in 3D found
    here: https://byjus.com/maths/equation-line/ to calculate the z-value
-   of the corresponding point in the SAW to determine whether pkpk+1 is
+   of the corresponding point in the SAW to determine whether pkpk_1 is
    an underpass or not.
    
    arguments:
    k - int - the index of node pk within the SAW
    j - int the index of node pj within the SAW
-   intersect - numpy array with shape (2,1) - the intersection within the projection,
-   with format (x, y)
-   saw - numpy array with shape (N, 3) - the SAW where underpasses will be found from
+   intersect - numpy array with shape (2,1) - the intersection within the 
+   projection, with format (x, y)
+   saw - numpy array with shape (N, 3) - the SAW where underpasses will be 
+   found from
    
    return value:
    boolean - True if pkpk_1 is an underpass, else False
@@ -86,14 +85,29 @@ def is_underpass(k, j, intersect, saw):
    pj = saw[j]
    pj_1 = saw[j+1]
 
-   if validate_intersect_in_segments(intersect, pk, pk_1, pj, pj_1):
-      zk = pk[2] + (pk_1[2] - pk[2])*(intersect[0] - pk[0]) / (pk_1[0] - pk[0])
-      zj = pj[2] + (pj_1[2] - pj[2])*(intersect[0] - pj[0]) / (pj_1[0] - pj[0])
-      return True if (zj - zk > eps) else False
-   else: return False
+   zk = pk[2] + (pk_1[2] - pk[2])*(intersect[0] - pk[0]) / (pk_1[0] - pk[0])
+   zj = pj[2] + (pj_1[2] - pj[2])*(intersect[0] - pj[0]) / (pj_1[0] - pj[0])
+   return True if (zj - zk > eps) else False
+   
    
 
 def pre_alexander_compile(saw, proj):
+   """return underpass type and overpassing generators as an array.
+   
+   This function uses the common intersection for each underpass and overpass
+   as a sort of common key to collect the important info in underpass_info (i.e.
+   the underpass type) and the important info in overpasses (i.e. the overpass
+   index) into one array.
+   
+   arguments:
+   saw - numpy array with shape (N, 3) - the SAW where underpasses will be 
+   found from
+   proj - numpy array with shape (N, 2) - the regular projection of the SAW
+   
+   return value:
+   out - numpy array with shape (I, 2), where I is the number of intersections.
+   Is the array of relevant information we need to populate Alexander Matrix.
+   """
    underpass_info = collect_underpass_info(saw, proj)
    overpasses = collect_overpass_intersects(saw, proj)
    out = []
@@ -107,15 +121,33 @@ def pre_alexander_compile(saw, proj):
 
 
 def collect_underpass_info(saw, proj):
+   """return array of underpass type and intersection.
+   
+   This function loops through the projection twice, such that for each line
+   segment, we test whether it is intersected by any other line segment. We
+   then check whether at the current line segment, whether such an intersection
+   is an underpass. We then determine the type of underpass (either type I or
+   type II, with type I being "left-handed" and type II being ""right-handed"
+   from the persective of the underpass) and collect the results in 
+   underpass_info.
+
+   NOTE: saw is not the original SAW, but should be the already rotated one, in 
+   order to be in correct alignment with the projection
+
+   arguments:
+   saw - numpy array with shape (N, 3) - the SAW where underpasses will be 
+   found from
+   proj - numpy array with shape (N, 2) - the regular projection of the SAW
+
+   return value:
+   underpass_info - a ragged numpy array. Each element along axis 0 is a pair, 
+   with the first element being the type of underpass, and the second being
+   the coordinates of the underpass.
+   """
+   
    underpass_info = []
 
    for k in np.arange(proj.shape[0]-1):
-      # collecting pre and post j, j+1 information so we loop through every node except those
-      # with index j and j+1
-      # temp_index_array = np.arange(proj.shape[0])
-      # pre_j = temp_index_array[:k]
-      # post_j_1 = temp_index_array[k+2:]
-      # temp_index_array = np.concatenate((pre_j,post_j_1), axis=None)
       for j in np.arange(proj.shape[0]-1):
          if j == k-1 or j == k or j == k+1:
             continue
@@ -140,21 +172,36 @@ def collect_underpass_info(saw, proj):
 
 
 def collect_overpass_intersects(saw, proj):
+   """return intersections that are overpasses as an array.
+   
+   This method is similar to collect_underpass_info, except that it only
+   collects the intersections in the order that they are found to be overpasses.
+   This is the only information that we need about the overpasses.
+   
+   NOTE: saw is not the original SAW, but should be the already rotated one, in 
+   order to be in correct alignment with the projection
+   
+   arguments:
+   saw - numpy array with shape (N, 3) - the SAW where underpasses will be 
+   found from
+   proj - numpy array with shape (N, 2) - the regular projection of the SAW
+
+   return value:
+   overpass_info - a numpy array with shape (I, 2), where I is the number of
+   intersections. Each entry along axis 0 is a (2,1) array encoding the 
+   coordinates of the ith overpass.
+   """
    overpass_info = []
    
    for i in np.arange(proj.shape[0]-1):
-      # collecting pre and post j, j+1 information so we loop through every node except those
-      # with index j and j+1
-      temp_index_array = np.arange(proj.shape[0])
-      pre_j = temp_index_array[:i]
-      post_j_1 = temp_index_array[i+2:]
-      temp_index_array = np.concatenate((pre_j,post_j_1), axis=None)
-      for j in temp_index_array:
-         pk = proj[i][:2]
-         pk_1 = proj[i+1][:2]
+      for j in np.arange(proj.shape[0]-1):
+         if j == i-1 or j == i or j == i+1:
+            continue
+         pi = proj[i][:2]
+         pi_1 = proj[i+1][:2]
          pj = proj[j][:2]
          pj_1 = proj[j+1][:2]
-         intersect = find_intersection_2D(pk, pk_1, pj, pj_1)
+         intersect = find_intersection_2D(pi, pi_1, pj, pj_1)
          if intersect is not None:
             if not is_underpass(i, j, intersect, saw):
                overpass_info.append(intersect)

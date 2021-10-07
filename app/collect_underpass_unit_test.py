@@ -3,11 +3,8 @@ import json
 import numpy as np
 
 from .alexander import collect_underpass_info
-from .generate_chain import generate_closed_chain
 from .projection import find_reg_project_rot, rot_saw_xy
 
-SGF_FILE_TYPE = ".sgf"
-JSON_FILE_TYPE = ".json"
 TEST_CASE_N_8 = "test_chains_N8.json"
 TEST_CASE_N_30 = "test_chains_N30.json"
 TEST_CASE_N_90 = "test_chains_N90.json"
@@ -27,7 +24,7 @@ def export_test_chains_to_JSON(test_chain_list, file):
 
 
 def collect_underpass_unit_test():
-    with open(TEST_CASE_N_140) as ifile:
+    with open(TEST_CASE_N_8) as ifile:
         print("Loading test data from file {}...".format(TEST_CASE_N_8))
         in_data = json.load(ifile)
         tests = in_data["tests"]
@@ -35,7 +32,6 @@ def collect_underpass_unit_test():
         print("Finished loading test data.")
         for i in np.arange(np.shape(tests)[0]):  
             try:
-                # TODO: continue debugging this by checking more cases
                 project = find_reg_project_rot(tests[i])
                 test_info = collect_underpass_info(rot_saw_xy(tests[i]), project)
                 print(np.shape(test_info)[0])
