@@ -209,11 +209,11 @@ def collect_overpass_intersects(saw, proj):
 
 
 def populate_alexander_matrix(saw, proj, t):
-
+   
    underpass_info = pre_alexander_compile(saw, proj)
    I = np.shape(underpass_info)[0]
    alex_mat = np.zeros((I, I))
-
+   
    for k in np.arange(I):
       if underpass_info[k, 1] == k:
          alex_mat[k, k] = -1

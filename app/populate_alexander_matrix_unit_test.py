@@ -10,6 +10,7 @@ TEST_CASE_N_30 = "test_chains_N30.json"
 TEST_CASE_N_90 = "test_chains_N90.json"
 TEST_CASE_N_140 = "test_chains_N140.json"
 
+#TODO: create test cases where you know what the matrix should look like
 def populate_alexander_matrix_unit_test():
     with open(TEST_CASE_N_8) as ifile:
         print("Loading test data from file {}...".format(TEST_CASE_N_8))
