@@ -144,7 +144,6 @@ def collect_underpass_info(saw, proj):
    with the first element being the type of underpass, and the second being
    the coordinates of the underpass.
    """
-   
    underpass_info = []
 
    for k in np.arange(proj.shape[0]-1):

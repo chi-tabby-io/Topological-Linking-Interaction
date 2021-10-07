@@ -8,6 +8,7 @@ from .collect_overpass_intersects_test import \
 from .collect_underpass_unit_test import collect_underpass_unit_test
 from .generate_chain import chain_to_JSON, generate_closed_chain
 from .intersect_unit_test import intersect_unit_test
+from .pre_alexander_compile_unit_test import pre_alexander_compile_unit_test
 from .projection import find_reg_project_rot, rot_saw_xy
 
 
@@ -35,7 +36,8 @@ def data_helper():
         #saw = rot_saw_xy(saw)
         xy_project = find_reg_project_rot(saw)
         #collect_underpass_unit_test()
-        collect_overpass_intersects_unit_test()
+        #collect_overpass_intersects_unit_test()
+        pre_alexander_compile_unit_test()
         payload = chain_to_JSON(xy_project)
         #payload = chain_to_JSON(saw)
         return jsonify(payload)  # serialize and use JSON headers

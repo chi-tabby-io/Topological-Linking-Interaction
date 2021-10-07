@@ -24,7 +24,7 @@ def export_test_chains_to_JSON(test_chain_list, file):
 
 
 def collect_underpass_unit_test():
-    with open(TEST_CASE_N_8) as ifile:
+    with open(TEST_CASE_N_30) as ifile:
         print("Loading test data from file {}...".format(TEST_CASE_N_8))
         in_data = json.load(ifile)
         tests = in_data["tests"]
@@ -34,7 +34,7 @@ def collect_underpass_unit_test():
             try:
                 project = find_reg_project_rot(tests[i])
                 test_info = collect_underpass_info(rot_saw_xy(tests[i]), project)
-                print(np.shape(test_info)[0])
+                print(test_info)
                 assert np.shape(test_info)[0] == validation_list[i]
             except AssertionError: 
                 print("test {} failed.".format(i+1))
