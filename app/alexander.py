@@ -215,9 +215,8 @@ def populate_alexander_matrix(saw, proj, t):
    alex_mat = np.zeros((I, I))
    
    for k in np.arange(I):
-      if underpass_info[k, 1] == k:
+      if underpass_info[k, 1] == k or underpass_info[k, 1] == k+1:
          alex_mat[k, k] = -1
-      elif underpass_info[k, 1] == k+1:
          if k == I-1:
             continue
          else: alex_mat[k, k+1] = 1
