@@ -24,7 +24,7 @@ def populate_alexander_matrix_unit_test():
             pre_results = pre_alexander_compile(rot_saw_xy(tests[i]), project)
             print(pre_results)
             results = populate_alexander_matrix(rot_saw_xy(tests[i]), project, -1)
-            #print(results)
+            print(results)
             # try:
             #     assert np.shape(test_info)[0] == validation_list[i]
             # except AssertionError: 

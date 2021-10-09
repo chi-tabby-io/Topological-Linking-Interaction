@@ -166,7 +166,8 @@ def collect_underpass_info(saw, proj):
                   info.append(1)
                info.append(intersect)
                underpass_info.append(info)
-
+   print("Printing underpass info...")
+   print(underpass_info)
    return np.array(underpass_info,dtype=object)
 
 
@@ -204,7 +205,8 @@ def collect_overpass_intersects(saw, proj):
          if intersect is not None:
             if not is_underpass(i, j, intersect, saw):
                overpass_info.append(intersect)
-
+   print("Printing overpass info...")
+   print(overpass_info)
    return np.array(overpass_info)
 
 
@@ -221,6 +223,7 @@ def populate_alexander_matrix(saw, proj, t):
             continue
          else: alex_mat[k, k+1] = 1
       else:
+         alex_mat[k, underpass_info[k, 1]] = t - 1
          if underpass_info[k, 0] == 0: # Type I
             alex_mat[k, k] = 1
             if k == I-1:
@@ -231,6 +234,5 @@ def populate_alexander_matrix(saw, proj, t):
             if k == I-1:
                continue
             else: alex_mat[k, k+1] = 1
-         alex_mat[k, underpass_info[k, 1]] = t - 1
 
    return alex_mat

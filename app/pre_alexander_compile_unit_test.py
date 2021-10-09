@@ -9,9 +9,10 @@ TEST_CASE_N_8 = "test_chains_N8.json"
 TEST_CASE_N_30 = "test_chains_N30.json"
 TEST_CASE_N_90 = "test_chains_N90.json"
 TEST_CASE_N_140 = "test_chains_N140.json"
+TEST_CASE_N_18 = "populate_alexander_matrix_test_chains_N18.json"
 
 def pre_alexander_compile_unit_test():
-    with open(TEST_CASE_N_140) as ifile:
+    with open(TEST_CASE_N_18) as ifile:
         print("Loading test data from file {}...".format(TEST_CASE_N_8))
         in_data = json.load(ifile)
         tests = in_data["tests"]
@@ -20,7 +21,7 @@ def pre_alexander_compile_unit_test():
         for i in np.arange(np.shape(tests)[0]):  
             project = find_reg_project_rot(tests[i])
             results = pre_alexander_compile(rot_saw_xy(tests[i]), project)
-            print(results)
+            #print(results)
             # try:
             #     assert np.shape(test_info)[0] == validation_list[i]
             # except AssertionError: 
