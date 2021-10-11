@@ -91,36 +91,39 @@ def is_underpass(k, j, intersect, saw):
    
    
 
-def pre_alexander_compile(saw, proj):
-   """return underpass type and overpassing generators as an array.
+# def pre_alexander_compile(saw, proj):
+#    """return underpass type and overpassing generators as an array.
    
-   This function uses the common intersection for each underpass and overpass
-   as a sort of common key to collect the important info in underpass_info (i.e.
-   the underpass type) and the important info in overpasses (i.e. the overpass
-   index) into one array.
+#    This function uses the common intersection for each underpass and overpass
+#    as a sort of common key to collect the important info in underpass_info (i.e.
+#    the underpass type) and the important info in overpasses (i.e. the overpass
+#    index) into one array.
    
-   arguments:
-   saw - numpy array with shape (N, 3) - the SAW where underpasses will be 
-   found from
-   proj - numpy array with shape (N, 2) - the regular projection of the SAW
+#    arguments:
+#    saw - numpy array with shape (N, 3) - the SAW where underpasses will be 
+#    found from
+#    proj - numpy array with shape (N, 2) - the regular projection of the SAW
    
-   return value:
-   out - numpy array with shape (I, 2), where I is the number of intersections.
-   Is the array of relevant information we need to populate Alexander Matrix.
-   """
-   underpass_info = collect_underpass_info(saw, proj)
-   overpasses = collect_overpass_intersects(saw, proj)
-   out = []
-   for k in np.arange(np.shape(underpass_info)[0]):
-      for i in np.arange(np.shape(overpasses)[0]):
-         # may have to set a tolerance on this, even though, theoretically,
-         # the intersection should be the same
-         if np.array_equal(underpass_info[k, 1], overpasses[i]):
-            out.append([underpass_info[k, 0], i])
-   return np.array(out)
+#    return value:
+#    out - numpy array with shape (I, 2), where I is the number of intersections.
+#    Is the array of relevant information we need to populate Alexander Matrix.
+#    """
+#    underpass_info = collect_underpass_info(saw, proj)
+#    #overpasses = collect_overpass_intersects(saw, proj)
+#    out = []
+#    for k in np.arange(np.shape(underpass_info)[0]):
+#       for i in np.arange(np.shape(overpasses)[0]):
+#          # may have to set a tolerance on this, even though, theoretically,
+#          # the intersection should be the same
+#          if np.array_equal(underpass_info[k, 1], overpasses[i]):
+#             out.append([underpass_info[k, 0], i])
+#    return np.array(out)
 
 
 def collect_underpass_info(saw, proj):
+   #CHANGE for 10/10/2021: underpass info now contains arrays with two 
+   # elements: first being the underpass type, second being array of 
+   # encapsulating points' indices in proj, namely, [k,k+1, j,j+1]
    """return array of underpass type and intersection.
    
    This function loops through the projection twice, such that for each line
@@ -164,54 +167,67 @@ def collect_underpass_info(saw, proj):
                   info.append(0)
                else: # Type II
                   info.append(1)
-               info.append(intersect)
+               info.append([k,k+1,j,j+1]) 
+               #info.append(intersect)
                underpass_info.append(info)
    print("Printing underpass info...")
    print(underpass_info)
    return np.array(underpass_info,dtype=object)
 
+#FURTHER NOTE 10/10/2021: this function kind of acts like our new alexander_pre_compile
+def assign_generators_to_underpasses(saw, proj, underpass_info):
+   """return a list of underpass info, including underpass type and generator."""
 
-def collect_overpass_intersects(saw, proj):
-   """return intersections that are overpasses as an array.
-   
-   This method is similar to collect_underpass_info, except that it only
-   collects the intersections in the order that they are found to be overpasses.
-   This is the only information that we need about the overpasses.
-   
-   NOTE: saw is not the original SAW, but should be the already rotated one, in 
-   order to be in correct alignment with the projection
-   
-   arguments:
-   saw - numpy array with shape (N, 3) - the SAW where underpasses will be 
-   found from
-   proj - numpy array with shape (N, 2) - the regular projection of the SAW
+   #NOTE: now, assume each entry in underpass info includes underpass type, 
+   # underpass intersection coord, and indices of encapsulating nodes of
+   # underpass
+   out = []
+   return None
 
-   return value:
-   overpass_info - a numpy array with shape (I, 2), where I is the number of
-   intersections. Each entry along axis 0 is a (2,1) array encoding the 
-   coordinates of the ith overpass.
-   """
-   overpass_info = []
+
    
-   for i in np.arange(proj.shape[0]-1):
-      for j in np.arange(proj.shape[0]-1):
-         if j == i-1 or j == i or j == i+1:
-            continue
-         pi = proj[i][:2]
-         pi_1 = proj[i+1][:2]
-         pj = proj[j][:2]
-         pj_1 = proj[j+1][:2]
-         intersect = find_intersection_2D(pi, pi_1, pj, pj_1)
-         if intersect is not None:
-            if not is_underpass(i, j, intersect, saw):
-               overpass_info.append(intersect)
-   print("Printing overpass info...")
-   print(overpass_info)
-   return np.array(overpass_info)
+
+# def collect_overpass_intersects(saw, proj):
+#    """return intersections that are overpasses as an array.
+   
+#    This method is similar to collect_underpass_info, except that it only
+#    collects the intersections in the order that they are found to be overpasses.
+#    This is the only information that we need about the overpasses.
+   
+#    NOTE: saw is not the original SAW, but should be the already rotated one, in 
+#    order to be in correct alignment with the projection
+   
+#    arguments:
+#    saw - numpy array with shape (N, 3) - the SAW where underpasses will be 
+#    found from
+#    proj - numpy array with shape (N, 2) - the regular projection of the SAW
+
+#    return value:
+#    overpass_info - a numpy array with shape (I, 2), where I is the number of
+#    intersections. Each entry along axis 0 is a (2,1) array encoding the 
+#    coordinates of the ith overpass.
+#    """
+#    overpass_info = []
+   
+#    for i in np.arange(proj.shape[0]-1):
+#       for j in np.arange(proj.shape[0]-1):
+#          if j == i-1 or j == i or j == i+1:
+#             continue
+#          pi = proj[i][:2]
+#          pi_1 = proj[i+1][:2]
+#          pj = proj[j][:2]
+#          pj_1 = proj[j+1][:2]
+#          intersect = find_intersection_2D(pi, pi_1, pj, pj_1)
+#          if intersect is not None:
+#             if not is_underpass(i, j, intersect, saw):
+#                overpass_info.append(intersect)
+#    print("Printing overpass info...")
+#    print(overpass_info)
+#    return np.array(overpass_info)
 
 
 def populate_alexander_matrix(saw, proj, t):
-   
+   # will have to change name of pre_alexander_compile
    underpass_info = pre_alexander_compile(saw, proj)
    I = np.shape(underpass_info)[0]
    alex_mat = np.zeros((I, I))
