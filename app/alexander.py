@@ -188,8 +188,7 @@ def collect_all_intersections(proj):
          intersect = find_intersection_2D(pk, pk_1, pj, pj_1)
          if intersect is not None:
             intersect = [intersect,k,k+1,j,j+1]
-            if intersect not in intersections:
-               intersections.append(intersect)   
+            intersections.append(intersect)   
    return np.array(intersections)
 
 def get_underpasses(proj, saw):
@@ -206,39 +205,41 @@ def get_underpasses(proj, saw):
 def pre_alexander_compile(saw, proj):
    """return a list of underpass info, including underpass type and generator."""
    intersections = collect_all_intersections(proj)
-   I = np.shape(intersections)[0]
    underpasses = get_underpasses(proj, saw)
-   underpass_info = np.zeros_like((I,2)) # have to check this syntax
+   underpass_info = np.zeros((np.shape(underpasses)[0],2)) 
 
-   for underpass in underpasses:
+   for l in np.arange(np.shape(underpasses)[0]):
       # collect underpass type
-      pk = proj[underpass[1]][:2]
-      pk_1 = proj[underpass[2]][:2]
-      pj = proj[underpass[3]][:2]
+      pk = proj[underpasses[l][1]][:2]
+      pk_1 = proj[underpasses[l][2]][:2]
+      pj = proj[underpasses[l][3]][:2]
       v1 = np.subtract(pk, pj)
       v2 = np.subtract(pk, pk_1)
       if np.cross(v1, v2) == 1: # Type I
-         underpass_info[np.where(underpasses==underpass),0] = 0
+         underpass_info[l,0] = 0
       else: # Type II
-         underpass_info[np.where(underpasses==underpass),0] = 1
+         underpass_info[l,0] = 1
          #NOTE: above and below should most likely be two methods, e.g.
          # put_underpass_type() and put_underpass_generator()
       # for every underpass in intersections, move backward. if intersection is underpass continue,
       # else we need to record what that generator is and the underpass's type
-      i = np.where(intersections == underpass) # i is current underpass
-      k = i - 1 # k is index through which we run through backward
-      if k < 0:
-         k = I - 1
-      while not is_underpass(intersections[k,1],intersections[k,3],intersections[k,0],saw):
-         underpass_info[np.where(underpasses==intersections[k]), 1] = i
-         k -= 1
+      k = np.where(intersections == underpass) - 1 # i is current underpass
+      while True:
          if k < 0:
-            k = I - 1
+            k = np.shape(intersections)[0] - 1
+         if not is_underpass(intersections[k,1],intersections[k,3],intersections[k,0],saw):
+            i_underpass = np.array([intersections[k,0],intersections[k,3], 
+                                    intersections[k,4],intersections[k,1],
+                                    intersections[k,2]])
+            i =  np.where(underpasses==i_underpass) 
+            underpass_info[i, 1] = l
+            k -= 1
+         else:
+            break
 
    return underpass_info
 
 
-   
 
 # def collect_overpass_intersects(saw, proj):
 #    """return intersections that are overpasses as an array.
