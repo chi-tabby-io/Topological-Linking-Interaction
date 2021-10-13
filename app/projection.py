@@ -142,15 +142,14 @@ def find_reg_project_com(saw):
 def rot_saw_xy(saw):
     alpha = -np.pi / 3.0
     beta = np.pi / 6.0
-    gamma = np.pi
     x_rot = rot_matrix_x(alpha)
-    y_rot = rot_matrix_y(beta + gamma) # gamma rotation is for debugging
+    y_rot = rot_matrix_y(beta) # gamma rotation is for debugging
     rotated_saw = []
     for vertex in saw:
         rot_vertex = np.matmul(x_rot, vertex)
         rot_vertex = np.matmul(y_rot, vertex)
         rotated_saw.append(rot_vertex)
-    return rotated_saw
+    return np.array(rotated_saw)
 
 def find_reg_project_rot(saw):
     """return regular projection of SAW via rotation by irrational angle.
