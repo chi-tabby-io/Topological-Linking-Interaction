@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.linalg import LinAlgError, norm
 
 eps = 1.0e-12 # convenient small value for double comparison
 
@@ -11,6 +12,53 @@ def validate_intersect_in_segments(p0, p1, p2, p3, p4):
    
    return True if (in_line_1 and in_line_2) else False
 
+
+def find_intersection_2D_temp(p1, p2, p3, p4):
+   """from line segments p1p2 and p3p4, return the intersection if it exists.
+   
+   Each line segment may be represented by the vector eqns:
+
+   x_1 = u_1 - v_1*t
+   x_2 = u_2 - v_2*s
+
+   where each underscored variable is a 3-vector, and t and s are real numbers
+   lying in some closed interval of the real line such that for min(t) and min(s)
+   x_1 = p1 and x_2 = p3 and likewise for the maxima. 
+
+   The point of using this method is so that we return parameters for each
+   intersection which give us information about how far from the starting 
+   point the intersection takes place. This information will be used in the 
+   case when a single line segment has intersections with multiple other line
+   segments. 
+   """
+   # create 3-vector to solve linear system A*x = b
+   b_1 = p1[0] - p3[0]
+   b_2 = p1[1] - p3[1]
+   b = np.array([b_1,b_2])
+
+   # collect tangent vectors
+   v_1 = np.subtract(p2,p1)
+   v_2 = np.subtract(p4,p3)
+
+   v_1_normalized = v_1 / norm(v_1)
+   v_2_normalized = v_2 / norm(v_2)
+
+   # if the tangent vectors are parallel, impossible for there to be an
+   # intersection, given our projection is regular
+   if np.equal(v_1_normalized, v_2_normalized):
+      return None
+   
+   A = np.array([[-v_1[0], v_2[0]],[-v_1[1], v_2[1]]])
+   x = np.empty((2,1))
+   try:
+      x = np.linalg.solve(A, b)
+   except LinAlgError: # A is singular
+      return None
+   finally:
+      intersect = find_intersection_2D(p1, p2, p3, p4)
+      if intersect is None: return None # case when have intersect, but no in seg
+      else:
+         return np.array([intersect, x]) # return both intersect and param values
 
 # algorithm from: https://www.geeksforgeeks.org/program-for-point-of-intersection-of-two-lines/
 def find_intersection_2D(p1, p2, p3, p4):
@@ -134,12 +182,12 @@ def get_underpass_nodes(proj, saw):
    """return a list of underpasses, in order of occurence."""
    intersection_nodes = collect_all_intersections_by_indices(proj)
    intersection_coords = collect_all_intersections_by_coord(proj)
-   underpasses = np.empty((1,4), dtype=np.uintc)
+   underpass_nodes = np.empty((1,4), dtype=np.uintc)
    for i in np.arange(np.shape(intersection_nodes)[0]):
       if is_underpass(intersection_nodes[i,0], intersection_nodes[i,2],
                       intersection_coords[i], saw):
-         underpasses = np.append(underpasses, np.array([intersection_nodes[i]],dtype=np.uintc), axis=0)
-   return underpasses[1:]
+         underpass_nodes = np.append(underpass_nodes, np.array([intersection_nodes[i]],dtype=np.uintc), axis=0)
+   return underpass_nodes[1:]
 
 
 def assign_underpass_types(underpasses, proj, underpass_info):
@@ -169,10 +217,7 @@ def assign_generator_to_underpasses(underpass_nodes, intersection_nodes,
             j = np.shape(intersection_nodes)[0] - 1
          if not is_underpass(intersection_nodes[j,0], intersection_nodes[j,2],
                              intersection_coords[j], saw):
-            # assign j to ith underpass
-            #TODO: permute intersection_nodes[j] so this overpass becomes underpass
-            #      then find where that underpass is in underpass_nodes, and finally,
-            #      put the value of j into this underpasses j-generator slot
+
             underpass_k = np.roll(intersection_nodes[j], 2)
             k = np.nonzero(np.all((underpass_nodes-underpass_k)==0,axis=1))[0][0]
             underpass_info[k, 1] = i

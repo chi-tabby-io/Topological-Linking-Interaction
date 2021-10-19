@@ -83,7 +83,7 @@ def com_projection(saw, k, k_1):
     v2 = np.subtract(saw[k_1], com)
 
     plane_norm = np.cross(v1, v2)
-    plane_norm = plane_norm / norm(plane_norm, 2)
+    plane_norm = plane_norm / norm(plane_norm)
 
     projection = []
 
