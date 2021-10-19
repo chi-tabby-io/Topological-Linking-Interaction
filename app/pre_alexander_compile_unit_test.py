@@ -21,7 +21,7 @@ def pre_alexander_compile_unit_test():
         for i in np.arange(np.shape(tests)[0]):  
             project = find_reg_project_rot(tests[i])
             results = pre_alexander_compile(rot_saw_xy(tests[i]), project)
-            #print(results)
+            print(results)
             # try:
             #     assert np.shape(test_info)[0] == validation_list[i]
             # except AssertionError: 

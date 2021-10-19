@@ -136,6 +136,7 @@ def data_helper():
         #collect_underpass_unit_test()
         #collect_overpass_intersects_unit_test()
         #pre_alexander_compile_unit_test()
+        populate_alexander_matrix_unit_test()
         payload = chain_to_JSON(xy_project)
         #payload = chain_to_JSON(saw)
         return jsonify(payload)  # serialize and use JSON headers
