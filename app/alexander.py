@@ -93,9 +93,9 @@ def is_underpass(k, j, intersect, saw):
 # TODO: fix bug here and in collect_all_intersections_by_coord: issue when
 #       a single segment intersects two other intersections: sometimes you
 #       get the right intersection at the right time, other times no
-def collect_all_intersection_nodes(proj):
+def collect_all_intersections_by_indices(proj):
    """return list of surrounding nodes of each intersection"""
-   intersection_nodes = np.empty((1,4),dtype=np.uintc)
+   intersection_indices = np.empty((1,4),dtype=np.uintc)
    for k in np.arange(proj.shape[0]-1):
       for j in np.arange(proj.shape[0]-1):
          if j == k-1 or j == k or j == k+1:
@@ -106,10 +106,11 @@ def collect_all_intersection_nodes(proj):
          pj_1 = proj[j+1][:2]
          intersection = find_intersection_2D(pk, pk_1, pj, pj_1)
          if intersection is not None:
-            this_intersection_nodes = np.array([[k,k+1,j,j+1]], dtype=np.uintc)
-            intersection_nodes = np.append(intersection_nodes, 
-                                           this_intersection_nodes, axis=0)    
-   return intersection_nodes[1:]
+            this_intersection_indices = np.array([[k,k+1,j,j+1]], dtype=np.uintc)
+            intersection_indices = np.append(intersection_indices, 
+                                           this_intersection_indices, axis=0)  
+     
+   return intersection_indices[1:]
 
 def collect_all_intersections_by_coord(proj):
    """return list of coordinates for each array"""
@@ -131,7 +132,7 @@ def collect_all_intersections_by_coord(proj):
 
 def get_underpass_nodes(proj, saw):
    """return a list of underpasses, in order of occurence."""
-   intersection_nodes = collect_all_intersection_nodes(proj)
+   intersection_nodes = collect_all_intersections_by_indices(proj)
    intersection_coords = collect_all_intersections_by_coord(proj)
    underpasses = np.empty((1,4), dtype=np.uintc)
    for i in np.arange(np.shape(intersection_nodes)[0]):
@@ -183,7 +184,7 @@ def assign_generator_to_underpasses(underpass_nodes, intersection_nodes,
 #FURTHER NOTE 10/10/2021: this function kind of acts like our new alexander_pre_compile
 def pre_alexander_compile(saw, proj):
    """return a list of underpass info, including underpass type and generator."""
-   intersection_nodes = collect_all_intersection_nodes(proj)
+   intersection_nodes = collect_all_intersections_by_indices(proj)
    intersection_coords = collect_all_intersections_by_coord(proj)
    underpass_nodes = get_underpass_nodes(proj, saw)
    underpass_info = np.zeros((np.shape(underpass_nodes)[0],2)) 
