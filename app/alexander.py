@@ -1,4 +1,3 @@
-from typing import KeysView
 
 import numpy as np
 from numpy.linalg import LinAlgError, norm
@@ -15,7 +14,7 @@ def validate_intersect_in_segments(p0, p1, p2, p3, p4):
    return True if (in_line_1 and in_line_2) else False
 
 
-def find_intersection_2D_temp(p1, p2, p3, p4):
+def find_intersection_2D_vec(p1, p2, p3, p4):
    """from line segments p1p2 and p3p4, return the intersection if it exists.
    
    Each line segment may be represented by the vector eqns:
@@ -28,10 +27,23 @@ def find_intersection_2D_temp(p1, p2, p3, p4):
    x_1 = p1 and x_2 = p3 and likewise for the maxima. 
 
    The point of using this method is so that we return parameters for each
-   intersection which give us information about how far from the starting 
+   intersection which gives us information about how far from the starting 
    point the intersection takes place. This information will be used in the 
    case when a single line segment has intersections with multiple other line
    segments. 
+
+   arguments:
+   p1 - numpy array of doubles with shape (2,1) - first point of line segment p1p2
+   p2 - numpy array of doubles with shape (2,1) -second point of line segment p1p2
+   p3 - numpy array of doubles with shape (2,1) - first point of line segment p3p4
+   p4 - numpy array of doubles with shape (2,1) - second point of line segment p3p4
+
+   return value(s):
+   None - either the linear system is inconsistent or the intersection does not lie
+   in both segments' bounding boxes
+   np.array([intersect, x[0]]) - a numpy array whose first entry is the coordinates
+   of the intersection and the second is the parameter associated with line segment
+   p1p2, which serves as the "reference line segment"
    """
    # create 3-vector to solve linear system A*x = b
    b_1 = p1[0] - p3[0]
@@ -52,6 +64,7 @@ def find_intersection_2D_temp(p1, p2, p3, p4):
    
    A = np.array([[-v_1[0], v_2[0]],[-v_1[1], v_2[1]]])
    x = np.empty((2,1))
+
    try:
       x = np.linalg.solve(A, b)
    except LinAlgError: # A is singular
@@ -61,6 +74,7 @@ def find_intersection_2D_temp(p1, p2, p3, p4):
       if intersect is None: return None # case when have intersect, but no in seg
       else:
          return np.array([intersect, x[0]]) # return both intersect and param values
+
 
 # algorithm from: https://www.geeksforgeeks.org/program-for-point-of-intersection-of-two-lines/
 def find_intersection_2D(p1, p2, p3, p4):
@@ -140,81 +154,155 @@ def is_underpass(k, j, intersect, saw):
    return True if (zj - zk > eps) else False
 
 
-# TODO: fix bug here and in collect_all_intersections_by_coord: issue when
-#       a single segment intersects two other intersections: sometimes you
-#       get the right intersection at the right time, other times no
-# UPDATE 10/19/2021: fixed this ordering issue for the current test case.
+def order_intersections(intersections):
+   """returns a sorted list of intersections according to projection orientation.
+   
+   arguments:
+   intersections - a list of lists, containing the intersection coords and indices, and 
+   ordering parameter for each segment the first time it is encountered as an intersection
+   
+   return value:
+   the sorted version of intersections
+   """
+   # dtype to be used for the structured array
+   dtype = [('coords', np.float64, (2,)), ('indices', np.uintc, (4,)), ('order_param', np.float64)]
+   intersections_as_array = np.array(intersections, dtype=dtype)
+   # create temp array to be used as the sorting key
+   temp = np.zeros(intersections_as_array.shape, dtype='int,float')
+   # get first two columns of the indices
+   temp['f0'] = intersections_as_array['indices'][:,:2]
+   temp['f1'] = intersections_as_array['order_param']
+   # this step is literally magic as far as I know
+   return intersections_as_array[np.arsort(temp)]
+   # obtain this intersections indices, then append
+   # seen = {}
+   # this_intersection_indices = np.array([[k,k+1,j,j+1]], dtype=np.uintc)
+   # intersection_indices = np.append(intersection_indices, 
+   #                                  this_intersection_indices, axis=0) 
+
+   # this_intersection = [this_intersection_coords.tolist(), this_intersection_indices.tolist()]
+   # # now switch positions if necessary 
+   # this_key = np.array([k,k+1], np.intc).tobytes() # the keys are the indices of the first line segment used as comparison
+   # if this_key in seen.keys():
+   #    if seen[this_key] - intersection[1] > eps: # the current intersection occurs before already seen. must switch positions
+   #       # find the entry in intersection indices, pop that value, replacing with temp, then placing that value with new.
+   #       reference_value = np.frombuffer(this_key, dtype=np.intc)
+   #       index = np.nonzero(intersection_indices[:,:2][:] == reference_value)[0][0]
+   #       intersection_indices[[index,-1]] = intersection_indices[[-1,index]]
+   #       intersection_coords[[index,-1]] = intersection_coords[[-1,index]]
+   # else:
+   #    seen[this_key] = intersection[1] # assign the parameter to seen keys
+
+   return None
+
+def collect_all_intersections(proj):
+   """return structured array of intersection coords and surrounding indices.
+   
+   I am going to define a separate function which runs in linear time which
+   checks that the array is ordered according to the keys and the params (somewhat
+   alphabet ordering, order first according to the keys, which are the first
+   two indices of every intersection (these are well-ordered for every projection)
+   and then if we have a tie, break it using the parameters, which will also
+   be well-ordered.
+   """
+
+   intersections = []
+   for k in np.arange(proj.shape[0]-1):
+      for j in np.arange(proj.shape[0]-1):
+         if j == k-1 or j == k or j == k+1:
+            continue
+         pk = proj[k][:2]
+         pk_1 = proj[k+1][:2]
+         pj = proj[j][:2]
+         pj_1 = proj[j+1][:2]
+         intersection = find_intersection_2D_vec(pk, pk_1, pj, pj_1)
+         if intersection is not None:
+            # may modify in the future, as we may not need to return numpy array
+            # for find_intersection_2D_vec
+            this_intersection = [intersection[0].tolist(),[k,k+1,j,j+1], intersection[1]]
+            intersections.append(this_intersection)
+
+   return_val = order_intersections(intersections)
+
+   return return_val
+
+# UPDATE 10/19/2021: fixed this ordering issue for trefoil with N =18
 # Note that this method only works if each segment has at most two intersections.
 # Anymore and we are SOL.
-def collect_all_intersections_by_indices(proj):
-   """return list of surrounding nodes of each intersection"""
-   intersection_indices = np.empty((1,4),dtype=np.uintc)
-   seen = {}
-   for k in np.arange(proj.shape[0]-1):
-      for j in np.arange(proj.shape[0]-1):
-         if j == k-1 or j == k or j == k+1:
-            continue
-         pk = proj[k][:2]
-         pk_1 = proj[k+1][:2]
-         pj = proj[j][:2]
-         pj_1 = proj[j+1][:2]
-         intersection = find_intersection_2D_temp(pk, pk_1, pj, pj_1)
-         #intersection = find_intersection_2D(pk, pk_1, pj, pj_1)
-         if intersection is not None:
-            # obtain this intersections indices, then append
-            this_intersection_indices = np.array([[k,k+1,j,j+1]], dtype=np.uintc)
-            intersection_indices = np.append(intersection_indices, 
-                                           this_intersection_indices, axis=0) 
-            # now switch positions if necessary 
-            this_key = np.array([k,k+1], np.intc).tobytes() # the keys are the indices of the first line segment used as comparison
-            if this_key in seen.keys():
-               if seen[this_key] - intersection[1] > eps: # the current intersection occurs before already seen. must switch positions
-                  # find the entry in intersection indices, pop that value, replacing with temp, then placing that value with new.
-                  reference_value = np.frombuffer(this_key, dtype=np.intc)
-                  index = np.nonzero(intersection_indices[:,:2][:] == reference_value)[0][0]
-                  intersection_indices[[index,-1]] = intersection_indices[[-1,index]]
-            else:
-               seen[this_key] = intersection[1] # assign the parameter to seen keys
-            
-     
-   return intersection_indices[1:]
+# def collect_all_intersections_by_indices(proj):
+#    """return list of surrounding nodes of each intersection"""
+#    intersection_indices = np.empty((1,4),dtype=np.uintc)
+#    seen = {}
+#    for k in np.arange(proj.shape[0]-1):
+#       for j in np.arange(proj.shape[0]-1):
+#          if j == k-1 or j == k or j == k+1:
+#             continue
+#          pk = proj[k][:2]
+#          pk_1 = proj[k+1][:2]
+#          pj = proj[j][:2]
+#          pj_1 = proj[j+1][:2]
+#          intersection = find_intersection_2D_vec(pk, pk_1, pj, pj_1)
+#          if intersection is not None:
+#             # obtain this intersections coords, then append
+#             this_intersection_coords = np.array([intersection[0]])
+#             intersection_coords = np.append(intersection_coords, this_intersection_coords,
+#                                             axis=0)
 
-def collect_all_intersections_by_coord(proj):
-   """return list of coordinates for each array"""
-   intersection_indices = np.empty((1,4),dtype=np.uintc)
-   intersection_coords = np.empty((1,2))
-   seen = {}
-   for k in np.arange(proj.shape[0]-1):
-      for j in np.arange(proj.shape[0]-1):
-         if j == k-1 or j == k or j == k+1:
-            continue
-         pk = proj[k][:2]
-         pk_1 = proj[k+1][:2]
-         pj = proj[j][:2]
-         pj_1 = proj[j+1][:2]
+#             # obtain this intersections indices, then append
+#             this_intersection_indices = np.array([[k,k+1,j,j+1]], dtype=np.uintc)
+#             intersection_indices = np.append(intersection_indices, 
+#                                            this_intersection_indices, axis=0) 
 
-         intersection = find_intersection_2D_temp(pk, pk_1, pj, pj_1)
-         #intersection = find_intersection_2D(pk, pk_1, pj, pj_1)
-         if intersection is not None:
-            # obtain this intersections coords, then append
-            this_intersection_coords = np.array([intersection[0]])
-            intersection_coords = np.append(intersection_coords, this_intersection_coords,
-                                            axis=0)
-            this_intersection_indices = np.array([[k,k+1,j,j+1]], dtype=np.uintc)
-            intersection_indices = np.append(intersection_indices, 
-                                           this_intersection_indices, axis=0)  
-            # now switch positions if necessary 
-            this_key = np.array([k,k+1], np.intc).tobytes() # the keys are the indices of the first line segment used as comparison
-            if this_key in seen.keys():
-               if seen[this_key] - intersection[1] > eps: # the current intersection occurs before already seen. must switch positions
-                  # find the entry in intersection indices, pop that value, replacing with temp, then placing that value with new.
-                  reference_value = np.frombuffer(this_key, dtype=np.intc)
-                  index = np.nonzero(intersection_indices[:,:2][:] == reference_value)[0][0]
-                  intersection_indices[[index,-1]] = intersection_indices[[-1,index]]
-                  intersection_coords[[index,-1]] = intersection_coords[[-1,index]]
-            else:
-               seen[this_key] = intersection[1] # assign the parameter to seen keys
-   return intersection_coords[1:]
+#             # now switch positions if necessary 
+#             this_key = np.array([k,k+1], np.intc).tobytes() # the keys are the indices of the first line segment used as comparison
+#             if this_key in seen.keys():
+#                if seen[this_key] - intersection[1] > eps: # the current intersection occurs before already seen. must switch positions
+#                   # find the entry in intersection indices, pop that value, replacing with temp, then placing that value with new.
+#                   reference_value = np.frombuffer(this_key, dtype=np.intc)
+#                   index = np.nonzero(intersection_indices[:,:2][:] == reference_value)[0][0]
+#                   intersection_indices[[index,-1]] = intersection_indices[[-1,index]]
+#             else:
+#                seen[this_key] = intersection[1] # assign the parameter to seen keys
+
+#    return intersection_indices[1:]
+
+
+# def collect_all_intersections_by_coord(proj):
+#    """return list of coordinates for each array"""
+#    intersection_indices = np.empty((1,4),dtype=np.uintc)
+#    intersection_coords = np.empty((1,2))
+#    seen = {}
+#    for k in np.arange(proj.shape[0]-1):
+#       for j in np.arange(proj.shape[0]-1):
+#          if j == k-1 or j == k or j == k+1:
+#             continue
+#          pk = proj[k][:2]
+#          pk_1 = proj[k+1][:2]
+#          pj = proj[j][:2]
+#          pj_1 = proj[j+1][:2]
+
+#          intersection = find_intersection_2D_vec(pk, pk_1, pj, pj_1)
+#          if intersection is not None:
+#             # obtain this intersections coords, then append
+#             this_intersection_coords = np.array([intersection[0]])
+#             intersection_coords = np.append(intersection_coords, this_intersection_coords,
+#                                             axis=0)
+#             this_intersection_indices = np.array([[k,k+1,j,j+1]], dtype=np.uintc)
+#             intersection_indices = np.append(intersection_indices, 
+#                                            this_intersection_indices, axis=0)  
+#             # now switch positions if necessary 
+#             this_key = np.array([k,k+1], np.intc).tobytes() # the keys are the indices of the first line segment used as comparison
+#             if this_key in seen.keys():
+#                if seen[this_key] - intersection[1] > eps: # the current intersection occurs before already seen. must switch positions
+#                   # find the entry in intersection indices, pop that value, replacing with temp, then placing that value with new.
+#                   reference_value = np.frombuffer(this_key, dtype=np.intc)
+#                   index = np.nonzero(intersection_indices[:,:2][:] == reference_value)[0][0]
+#                   intersection_indices[[index,-1]] = intersection_indices[[-1,index]]
+#                   intersection_coords[[index,-1]] = intersection_coords[[-1,index]]
+#             else:
+#                seen[this_key] = intersection[1] # assign the parameter to seen keys
+#    return intersection_coords[1:]
+
 
 def get_underpass_nodes(proj, saw):
    """return a list of underpasses, in order of occurence."""
@@ -270,7 +358,10 @@ def pre_alexander_compile(saw, proj):
    intersection_nodes = collect_all_intersections_by_indices(proj)
    intersection_coords = collect_all_intersections_by_coord(proj)
    underpass_nodes = get_underpass_nodes(proj, saw)
+
+   # initialize unerpass_info
    underpass_info = np.zeros((np.shape(underpass_nodes)[0],2),dtype=np.intc) 
+
    assign_underpass_types(underpass_nodes, proj, underpass_info)
    assign_generator_to_underpasses(underpass_nodes, intersection_nodes,
                                    intersection_coords, underpass_info, saw)
