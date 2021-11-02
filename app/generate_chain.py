@@ -2,7 +2,7 @@ import json
 
 import numpy as np
 
-from .generate_binary_list import gen_all_bin_list
+from .private.generate_binary_list import gen_all_bin_list
 
 sqrt_3 = 1.7320508075688772  # the distance between each link
 epsilon = 1.0e-12 # convenient small value for double comparison

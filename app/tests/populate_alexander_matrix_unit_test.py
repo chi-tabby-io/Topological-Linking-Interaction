@@ -2,14 +2,16 @@ import json
 
 import numpy as np
 
-from.alexander import populate_alexander_matrix, pre_alexander_compile
-from .projection import find_reg_project_rot, rot_saw_xy
+from ..alexander import populate_alexander_matrix
+from ..private.utilities import pre_alexander_compile, rot_saw_xy
+from ..projection import find_reg_project_rot
 
 # TEST_CASE_N_8 = "test_chains_N8.json"
 # TEST_CASE_N_30 = "test_chains_N30.json"
 # TEST_CASE_N_90 = "test_chains_N90.json"
 # TEST_CASE_N_140 = "test_chains_N140.json"
-TEST_CASE_N_18 = "populate_alexander_matrix_test_chains_N18.json"
+# TODO: change from absolute path (rel to project root) to variable
+TEST_CASE_N_18 = "app/tests/populate_alexander_matrix_test_chains_N18.json"
 
 #TODO: create test cases where you know what the matrix should look like
 def populate_alexander_matrix_unit_test():

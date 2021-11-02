@@ -1,6 +1,6 @@
 import numpy as np
 
-from .alexander import find_intersection_2D
+from ..private.utilities import find_intersection_2D
 
 
 def intersect_unit_test():
