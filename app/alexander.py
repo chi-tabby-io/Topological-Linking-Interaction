@@ -44,3 +44,31 @@ def populate_alexander_matrix(saw, proj, t):
             else: alex_mat[k, k+1] = 1
 
    return alex_mat
+
+
+from numpy.linalg import det
+
+from .projection import find_reg_project
+
+
+def evaluate_alexander_polynomial(saw, t):
+   # TODO: focus on edge cases
+   alex_mat = populate_alexander_matrix(saw, find_reg_project(saw), t)
+   minor = np.delete(alex_mat, 0, 0) # delete first row
+   minor = np.delete(minor, 0, 1) # delete first colum
+   minor_det = det(minor)
+   # TODO: figure out power of t we need...or better work around
+   final_result = int(np.round(abs(minor_det)))
+   return final_result
+   # if np.shape(alex_mat)[0] == 0:
+   #    print("something is wrong with this chain, or degenerate")
+   #    return None
+   # elif np.shape(alex_mat)[0] == 1:
+   #    return int(np.round(abs(alex_mat[0])))
+   # else:
+   #    minor = np.delete(alex_mat, 0, 0) # delete first row
+   #    minor = np.delete(minor, 0, 1) # delete first colum
+   #    minor_det = det(minor)
+   #    # TODO: figure out power of t we need...or better work around
+   #    final_result = int(np.round(abs(minor_det)))
+   #    return None

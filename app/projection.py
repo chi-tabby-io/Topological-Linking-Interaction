@@ -3,7 +3,7 @@ import numpy as np
 from .private.utilities import rot_saw_xy
 
 
-def find_reg_project_rot(saw):
+def find_reg_project(saw):
     """return regular projection of SAW via rotation by irrational angle.
     
     I like this one. Finds a regular projection of the SAW by rotating 

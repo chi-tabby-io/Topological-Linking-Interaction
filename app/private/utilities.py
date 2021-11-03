@@ -417,8 +417,6 @@ def code_to_chain(code):
   
 
 def construct_json_validation_from_file(file, validation_list=[]):
-   directions = np.array([(1,1,1), (-1,-1,-1), (-1,1,1), (1,-1,-1), (-1,-1,1),
-                          (1,1,-1), (1,-1,1), (-1,1,-1)])
    with open(file) as f:
       print("Loading test data from file {}...".format(file))
       file_contents = f.readlines()
@@ -428,7 +426,7 @@ def construct_json_validation_from_file(file, validation_list=[]):
       for code in codes:
          chains.append(code_to_chain(code))
       chains = np.array(chains)
-      info_as_dict = {"tests": chains.tolist(), "num_segments" : chains.shape[2],
+      info_as_dict = {"tests": chains.tolist(), "num_segments" : chains.shape[1]-1,
                   "validation_list": validation_list}
       
       out_file = Path(file).stem + JSON_EXTENSION
