@@ -1,4 +1,33 @@
+import json
+
 import numpy as np
+
+# ============================ CHAIN UTILITIES ============================= #
+
+class NumpyArrayEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self.obj)
+
+
+# expected input: numpy ndarray
+def chain_to_JSON(chain, file_dumps=False):
+    data = {"vertices": chain}
+
+    if file_dumps:
+        filename = "vertex_array.json"
+        print("Serializing NumPy array into {}...".format(filename))
+        # write to file 'chain.json'
+        with open(filename, "w") as ofile:
+            data_to_str = json.dumps(data)
+            json.dump(data_to_str, ofile, cls=NumpyArrayEncoder)
+        print("Done writing serialized NumPy array into {}.".format(filename))
+        return ""
+
+    else:
+        print("Dumping NumPy Array into JSON string...")
+        return json.dumps(data, cls=NumpyArrayEncoder)
 
 # ========================= PROJECTION UTILITIES =========================== #
 
@@ -364,3 +393,44 @@ def pre_alexander_compile(saw, proj):
 
    return underpass_info
 
+# ============================== TEST UTILITIES ============================= #
+
+#https://faculty.washington.edu/cemann/S0218216509007373.pdf
+# def code_to_json_chain(code):
+#    """From codes at above website return json array of code chain rep."""
+#    directions = np.array([(1,1,1), (-1,-1,-1), (-1,1,1), (1,-1,-1), (-1,-1,1),
+#                           (1,1,-1), (1,-1,1), (-1,1,-1)])
+#    chain = np.zeros((len(code)+1,3))
+#    chain_index = 1
+#    for number in code:
+#       previous_node = chain[chain_index-1]
+#       current_node = np.add(previous_node, directions[int(number)])
+#       chain[chain_index] = current_node #broadcasting ?
+#       previous_node = current_node
+#       chain_index += 1
+
+#    return chain_to_JSON(chain)
+  
+
+# def get_json_chains_from_file(file):
+#    return None
+
+# TODO: implement
+def construct_json_validation_from_file(file):
+   directions = np.array([(1,1,1), (-1,-1,-1), (-1,1,1), (1,-1,-1), (-1,-1,1),
+                          (1,1,-1), (1,-1,1), (-1,1,-1)])
+   with open(file) as f:
+      print("Loading test data from file {}...".format(f))
+      chain_codes = f.readlines()
+      chains = np.zeros((len(chain_codes),len(chain_codes[0])+1,3))
+      for code in chain_codes:
+         chain = np.zeros((len(code)+1,3))
+         chain_index = 1
+         for number in code:
+            previous_node = chain[chain_index-1]
+            current_node = np.add(previous_node, directions[int(number)])
+            chain[chain_index] = current_node #broadcasting ?
+            previous_node = current_node
+            chain_index += 1
+
+   return None

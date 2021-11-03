@@ -138,32 +138,6 @@ def generate_closed_chain(N):
     return np.array([chain, attempts], dtype=object)
 
 
-class NumpyArrayEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return json.JSONEncoder.default(self.obj)
-
-
-# expected input: numpy ndarray
-def chain_to_JSON(chain, file_dumps=False):
-    data = {"vertices": chain}
-
-    if file_dumps:
-        filename = "vertex_array.json"
-        print("Serializing NumPy array into {}...".format(filename))
-        # write to file 'chain.json'
-        with open(filename, "w") as ofile:
-            data_to_str = json.dumps(data)
-            json.dump(data_to_str, ofile, cls=NumpyArrayEncoder)
-        print("Done writing serialized NumPy array into {}.".format(filename))
-        return ""
-
-    else:
-        print("Dumping NumPy Array into JSON string...")
-        return json.dumps(data, cls=NumpyArrayEncoder)
-
-
 # detects whether is self-intersecting iff there exist two of the same vertex
 def is_self_intersecting(chain):
     unique = np.unique(chain, axis=0)

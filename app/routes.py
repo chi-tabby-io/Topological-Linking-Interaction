@@ -6,7 +6,8 @@ from app import app
 # from .collect_overpass_intersects_test import \
 #     collect_overpass_intersects_unit_test
 #from .collect_underpass_unit_test import collect_underpass_unit_test
-from .generate_chain import chain_to_JSON, generate_closed_chain
+from .generate_chain import generate_closed_chain
+from .private.utilities import chain_to_JSON, code_to_json_chain
 from .projection import find_reg_project_rot, rot_saw_xy
 from .tests.intersect_unit_test import intersect_unit_test
 from .tests.populate_alexander_matrix_unit_test import \
@@ -27,22 +28,25 @@ def data_helper():
         return "OK", 200
 
     else: # GET request
-        # current algorithm takes about 10-30s to generate closed,
-        # non-intersecting chain of length 50 (05/16/2021)
-        # NOTE: just don't put odd inputs O_O
-        # FURTHER NOTE: a knot will NOT form if N <= 23
-        N = 8 # the length of the SAW - definitely not the best place to put this
-        saw = generate_closed_chain(N)[0]
-        # rotate to match what our program uses behind the scenes (for debugging)
-        saw = rot_saw_xy(saw)
-        xy_project = find_reg_project_rot(saw)
-        #collect_underpass_unit_test()
-        #collect_overpass_intersects_unit_test()
-        #pre_alexander_compile_unit_test()
-        populate_alexander_matrix_unit_test()
-        payload = chain_to_JSON(xy_project)
-        #payload = chain_to_JSON(saw)
-        return jsonify(payload)  # serialize and use JSON headers
+        CODE = "002713460057144135"
+        payload = code_to_json_chain(CODE)
+        return jsonify(payload)
+        # # current algorithm takes about 10-30s to generate closed,
+        # # non-intersecting chain of length 50 (05/16/2021)
+        # # NOTE: just don't put odd inputs O_O
+        # # FURTHER NOTE: a knot will NOT form if N <= 23
+        # N = 8 # the length of the SAW - definitely not the best place to put this
+        # saw = generate_closed_chain(N)[0]
+        # # rotate to match what our program uses behind the scenes (for debugging)
+        # saw = rot_saw_xy(saw)
+        # xy_project = find_reg_project_rot(saw)
+        # #collect_underpass_unit_test()
+        # #collect_overpass_intersects_unit_test()
+        # #pre_alexander_compile_unit_test()
+        # populate_alexander_matrix_unit_test()
+        # payload = chain_to_JSON(xy_project)
+        # #payload = chain_to_JSON(saw)
+        # return jsonify(payload)  # serialize and use JSON headers
 
 
 @app.route("/")
