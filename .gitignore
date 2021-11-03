@@ -8,3 +8,4 @@ app/__pycache__/populate_alexander_matrix_unit_test.cpython-36.pyc
 app/__pycache__/pre_alexander_compile_unit_test.cpython-36.pyc
 app/__pycache__/projection.cpython-36.pyc
 app/__pycache__/routes.cpython-36.pyc
+.vscode
