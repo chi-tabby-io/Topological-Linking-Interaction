@@ -395,42 +395,43 @@ def pre_alexander_compile(saw, proj):
 
 # ============================== TEST UTILITIES ============================= #
 
-#https://faculty.washington.edu/cemann/S0218216509007373.pdf
-# def code_to_json_chain(code):
-#    """From codes at above website return json array of code chain rep."""
-#    directions = np.array([(1,1,1), (-1,-1,-1), (-1,1,1), (1,-1,-1), (-1,-1,1),
-#                           (1,1,-1), (1,-1,1), (-1,1,-1)])
-#    chain = np.zeros((len(code)+1,3))
-#    chain_index = 1
-#    for number in code:
-#       previous_node = chain[chain_index-1]
-#       current_node = np.add(previous_node, directions[int(number)])
-#       chain[chain_index] = current_node #broadcasting ?
-#       previous_node = current_node
-#       chain_index += 1
+from pathlib import Path
 
-#    return chain_to_JSON(chain)
+JSON_EXTENSION = ".json"
+
+#https://faculty.washington.edu/cemann/S0218216509007373.pdf
+def code_to_chain(code):
+   """From codes at above website return json array of code chain rep."""
+   directions = np.array([(1,1,1), (-1,-1,-1), (-1,1,1), (1,-1,-1), (-1,-1,1),
+                          (1,1,-1), (1,-1,1), (-1,1,-1)])
+   chain = np.zeros((len(code)+1,3))
+   chain_index = 1
+   for number in code:
+      previous_node = chain[chain_index-1]
+      current_node = np.add(previous_node, directions[int(number)])
+      chain[chain_index] = current_node #broadcasting ?
+      previous_node = current_node
+      chain_index += 1
+
+   return chain
   
 
-# def get_json_chains_from_file(file):
-#    return None
-
-# TODO: implement
-def construct_json_validation_from_file(file):
+def construct_json_validation_from_file(file, validation_list=[]):
    directions = np.array([(1,1,1), (-1,-1,-1), (-1,1,1), (1,-1,-1), (-1,-1,1),
                           (1,1,-1), (1,-1,1), (-1,1,-1)])
    with open(file) as f:
-      print("Loading test data from file {}...".format(f))
-      chain_codes = f.readlines()
-      chains = np.zeros((len(chain_codes),len(chain_codes[0])+1,3))
-      for code in chain_codes:
-         chain = np.zeros((len(code)+1,3))
-         chain_index = 1
-         for number in code:
-            previous_node = chain[chain_index-1]
-            current_node = np.add(previous_node, directions[int(number)])
-            chain[chain_index] = current_node #broadcasting ?
-            previous_node = current_node
-            chain_index += 1
+      print("Loading test data from file {}...".format(file))
+      file_contents = f.readlines()
+      codes, chains = [], []
+      for line in file_contents:
+         codes = codes + line.split()
+      for code in codes:
+         chains.append(code_to_chain(code))
+      chains = np.array(chains)
+      info_as_dict = {"tests": chains.tolist(), "num_segments" : chains.shape[2],
+                  "validation_list": validation_list}
+      
+      out_file = Path(file).stem + JSON_EXTENSION
+      with open(out_file, 'w') as json_file:
+         json.dump(info_as_dict, json_file)
 
-   return None

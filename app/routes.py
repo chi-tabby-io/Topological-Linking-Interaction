@@ -1,13 +1,16 @@
+import os
+
 import numpy as np
 from flask import jsonify, render_template, request
 
 from app import app
+from app.private.utilities import construct_json_validation_from_file
 
 # from .collect_overpass_intersects_test import \
 #     collect_overpass_intersects_unit_test
 #from .collect_underpass_unit_test import collect_underpass_unit_test
 from .generate_chain import generate_closed_chain
-from .private.utilities import chain_to_JSON, code_to_json_chain
+from .private.utilities import chain_to_JSON
 from .projection import find_reg_project_rot, rot_saw_xy
 from .tests.intersect_unit_test import intersect_unit_test
 from .tests.populate_alexander_matrix_unit_test import \
@@ -28,8 +31,11 @@ def data_helper():
         return "OK", 200
 
     else: # GET request
-        CODE = "002713460057144135"
-        payload = code_to_json_chain(CODE)
+        #have to make a check for posix or windows
+        test_code_file = os.getcwd() + "\\app\\tests\\test_knots_N_18.txt"
+        construct_json_validation_from_file(test_code_file)
+
+        # payload = code_to_json_chain()
         return jsonify(payload)
         # # current algorithm takes about 10-30s to generate closed,
         # # non-intersecting chain of length 50 (05/16/2021)
