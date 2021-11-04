@@ -10,7 +10,6 @@ from ..projection import find_reg_project
 # TODO: change from absolute path (rel to project root) to variable
 TEST_CASE_N_18 = "app/tests/test_knots_N_18.json"
 
-#TODO: create test cases where you know what the matrix should look like
 def populate_alexander_matrix_unit_test():
     with open(TEST_CASE_N_18) as ifile:
         print("Loading test data from file {}...".format(TEST_CASE_N_18))
@@ -23,6 +22,7 @@ def populate_alexander_matrix_unit_test():
                                                       find_reg_project(chain),
                                                       -1)
             alexander_poly = evaluate_alexander_polynomial(chain, -1)
-
-            # print(alexander_mat, end='\n\n')
-            print(alexander_poly, end='\n\n')
+            if alexander_poly == 1:
+                #print(chain, end='\n\n')
+                print(alexander_mat, end='\n\n')
+            #print(alexander_poly, end='\n\n')
