@@ -129,11 +129,11 @@ def generate_closed_chain(N):
     while not is_closed(chain) or is_self_intersecting(chain):
         chain = generate_chain(N)
         attempts += 1
-        if attempts % 50 == 0:
-            print("Current number of attempts:" + str(attempts))
+        # if attempts % 50 == 0:
+        #     print("Current number of attempts:" + str(attempts))
 
     chain = np.append(chain, np.zeros(3).reshape(1, 3), axis=0)
-    print("Took " + str(attempts) + " attempts to generate closed chain")
+    #print("Took " + str(attempts) + " attempts to generate closed chain")
 
     return np.array([chain, attempts], dtype=object)
 

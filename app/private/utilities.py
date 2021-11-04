@@ -199,7 +199,8 @@ def find_intersection_2D_vec(p1, p2, p3, p4):
       intersect = find_intersection_2D(p1, p2, p3, p4)
       if intersect is None: return None # case when have intersect, but no in seg
       else:
-         return np.array([intersect, x[0]]) # return both intersect and param values
+         dtype = [('coords', np.float64, (2,)), ('order_param', np.float64)]
+         return np.array([(intersect.tolist(), x[0])], dtype=dtype) # return both intersect and param values
 
 
 def is_underpass(k, j, intersect, saw):
@@ -234,6 +235,8 @@ def is_underpass(k, j, intersect, saw):
 def order_intersections(intersections):
    """returns a sorted list of intersections according to projection orientation.
    
+   Here we assume intersections is a structured numpy array.
+   
    arguments:
    intersections - a list of lists, containing the intersection coords and indices, and 
    ordering parameter for each segment the first time it is encountered as an intersection
@@ -241,16 +244,13 @@ def order_intersections(intersections):
    return value:
    the sorted version of intersections
    """
-   # dtype to be used for the structured array
-   dtype = [('coords', np.float64, (2,)), ('indices', np.uintc, (4,)), ('order_param', np.float64)]
-   intersections_as_array = np.array(intersections, dtype=dtype)
    # create temp array to be used as the sorting key
-   temp = np.zeros(intersections_as_array.shape, dtype=[('f0',np.uintc,(2,)),('f1',np.float64)])
+   temp = np.zeros(intersections.shape, dtype=[('f0',np.uintc,(2,)),('f1',np.float64)])
    # get first two columns of the indices
-   temp['f0'] = intersections_as_array['indices'][:,:2]
-   temp['f1'] = intersections_as_array['order_param']
+   temp['f0'] = intersections['indices'][:,:2]
+   temp['f1'] = intersections['order_param']
    # this step is literally magic as far as I know
-   return intersections_as_array[np.argsort(temp)]
+   return intersections[np.argsort(temp)]
 
 
 def collect_all_intersections(proj):
@@ -282,10 +282,12 @@ def collect_all_intersections(proj):
          pj_1 = proj[j+1][:2]
          intersection = find_intersection_2D_vec(pk, pk_1, pj, pj_1)
          if intersection is not None:
-            this_intersection = (intersection[0].tolist(),[k,k+1,j,j+1], intersection[1])
+            this_intersection = (intersection['coords'].tolist()[0], [k,k+1,j,j+1], intersection['order_param'][0])
             intersections.append(this_intersection)
-
-   return_val = order_intersections(intersections)
+   # dtype to be used for the structured array
+   dtype = [('coords', np.float64, (2,)), ('indices', np.uintc, (4,)), ('order_param', np.float64)]
+   intersections_as_array = np.array(intersections, dtype=dtype)
+   return_val = order_intersections(intersections_as_array)
    return return_val
 
 

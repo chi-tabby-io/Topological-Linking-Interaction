@@ -4,15 +4,15 @@ import numpy as np
 from flask import jsonify, render_template, request
 
 from app import app
-from app.alexander import populate_alexander_matrix
-from app.private.utilities import construct_json_validation_from_file
 
 from .generate_chain import generate_closed_chain
+from .monte_carlo import basic_monte_carlo_sim
 from .private.utilities import chain_to_JSON
-from .projection import find_reg_project, rot_saw_xy
-from .tests.intersect_unit_test import intersect_unit_test
-from .tests.populate_alexander_matrix_unit_test import \
-    populate_alexander_matrix_unit_test
+
+#from .projection import find_reg_project, rot_saw_xy
+# from .tests.intersect_unit_test import intersect_unit_test
+# from .tests.populate_alexander_matrix_unit_test import \
+#     populate_alexander_matrix_unit_test
 
 
 @app.route("/data_helper", methods=["GET", "POST"])
@@ -29,14 +29,12 @@ def data_helper():
         return "OK", 200
 
     else: # GET request
-        populate_alexander_matrix_unit_test()
-        N  = 18
+        N  = 140
+        NUM_CHAINS = 100
+        basic_monte_carlo_sim(N, NUM_CHAINS)
         chain = generate_closed_chain(N)[0]
         #TODO: debug these two chains. maybe reveal a bigger issue in code
-        # problem chain 1
-        #chain = np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], [0.0, 2.0, 2.0], [1.0, 3.0, 3.0], [2.0, 2.0, 4.0], [3.0, 1.0, 3.0], [2.0, 0.0, 2.0], [1.0, -1.0, 1.0], [0.0, 0.0, 2.0], [-1.0, 1.0, 1.0], [0.0, 2.0, 0.0], [1.0, 3.0, 1.0], [2.0, 2.0, 2.0], [1.0, 1.0, 3.0], [0.0, 0.0, 4.0], [1.0, -1.0, 3.0], [0.0, -2.0, 2.0], [-1.0, -1.0, 1.0], [0.0, 0.0, 0.0]])
-        #problem chain 2
-        #chain = np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], [0.0, 0.0, 2.0], [-1.0, 1.0, 3.0], [-2.0, 2.0, 2.0], [-3.0, 3.0, 1.0], [-2.0, 4.0, 0.0], [-1.0, 3.0, -1.0], [0.0, 2.0, 0.0], [-1.0, 1.0, 1.0], [-2.0, 0.0, 2.0], [-3.0, 1.0, 3.0], [-4.0, 2.0, 4.0], [-3.0, 3.0, 3.0], [-2.0, 4.0, 2.0], [-1.0, 3.0, 1.0], [-2.0, 2.0, 0.0], [-1.0, 1.0, -1.0], [0.0, 0.0, 0.0]])
+        
         #projection = find_reg_project(chain)
         payload = chain_to_JSON(chain)
         return jsonify(payload)

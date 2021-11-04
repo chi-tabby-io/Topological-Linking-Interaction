@@ -51,9 +51,10 @@ from numpy.linalg import det
 from .projection import find_reg_project
 
 
-def evaluate_alexander_polynomial(saw, t):
+def evaluate_alexander_polynomial(alex_mat):
+   if np.shape(alex_mat)[0] == 0:
+      return 1
    # TODO: focus on edge cases
-   alex_mat = populate_alexander_matrix(saw, find_reg_project(saw), t)
    minor = np.delete(alex_mat, 0, 0) # delete first row
    minor = np.delete(minor, 0, 1) # delete first colum
    minor_det = det(minor)

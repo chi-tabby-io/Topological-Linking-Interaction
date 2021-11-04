@@ -15,14 +15,18 @@ def populate_alexander_matrix_unit_test():
         print("Loading test data from file {}...".format(TEST_CASE_N_18))
         in_data = json.load(ifile)
         test_chains = in_data["tests"]
+        num_chains = len(test_chains)
         # validation_list = in_data["validation_list"]
         print("Finished loading test data.")
+        print("Printing {} Alexander Polynomials from loaded test data.".format(num_chains))
+
         for chain in test_chains:
-            alexander_mat = populate_alexander_matrix(chain,
+            alex_mat = populate_alexander_matrix(rot_saw_xy(chain),
                                                       find_reg_project(chain),
                                                       -1)
-            alexander_poly = evaluate_alexander_polynomial(chain, -1)
-            if alexander_poly == 1:
-                #print(chain, end='\n\n')
-                print(alexander_mat, end='\n\n')
-            #print(alexander_poly, end='\n\n')
+            alex_poly = evaluate_alexander_polynomial(alex_mat)
+            if alex_poly == 1:
+                print(chain, end='\n')
+                print(alex_mat, end='\n\n')
+
+        print("Finished Printing {} Alexander Polynomials from loaded test data.".format(num_chains))
