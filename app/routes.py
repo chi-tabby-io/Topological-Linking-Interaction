@@ -1,6 +1,9 @@
-import matplotlib.pyplot as plt
+import io
+
 import numpy as np
-from flask import jsonify, render_template, request
+from flask import Response, jsonify, render_template, request
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 from app import app
 
@@ -8,8 +11,8 @@ from .generate_chain import generate_closed_chain
 from .monte_carlo import basic_monte_carlo_sim
 from .private.utilities import chain_to_JSON
 
-N  = 18
-NUM_CHAINS = 30
+N  = 30
+NUM_CHAINS = 10000
 
 #from .projection import find_reg_project, rot_saw_xy
 # from .tests.intersect_unit_test import intersect_unit_test
@@ -31,6 +34,8 @@ def data_helper():
         return "OK", 200
 
     else: # GET request
+        #basic_monte_carlo_sim(N, NUM_CHAINS, table=False)
+        
         chain = generate_closed_chain(N)[0]
          
         payload = chain_to_JSON(chain)
@@ -38,20 +43,17 @@ def data_helper():
 
 
 @app.route("/plot.png", methods=["GET"])
-def plot():
-    raw_data = basic_monte_carlo_sim(N, NUM_CHAINS, table=False)
+def plot_png():
+    fig = create_figure()
+    output = io.BytesIO()
+    FigureCanvas(fig).print_png(output)
+    return Response(output.getvalue(), mimetype='image/png')
     # analyze the results
-    total_knots = len(np.where(raw_data[:,0]))
+    #total_knots = len(np.where(raw_data[:,0]))
     #attempt_stats = np.array([np.mean(raw_data[:,1]), np.std(raw_data[:,1])])
 
-    # plot attempt stats as hist
-    hist, bin_edges = np.histogram(raw_data[:,1], 50, density=True)
-    #axis = plt.add_subplot(1,1,1)
-    # plt.set_title("Distribution of Number of Attempts")
-    # plt.set_xlabel("Number of Attempts")
-    # plt.set_ylabel("Probability of Number of Number Attempts")
 
-    plt.plot(hist)
+    #plt.plot(hist)
     PLOT_NAME = "images/plot.png"
     plt.savefig(PLOT_NAME)
     plot.close()
@@ -59,6 +61,15 @@ def plot():
     print("final results: total number of knots was {}".format(total_knots))
     return render_template("index.html", plot=PLOT_NAME)
 
+
+def create_figure():
+    raw_data = basic_monte_carlo_sim(N, NUM_CHAINS, table=True)
+    hist, bin_edges = np.histogram(raw_data[:,1], 50, density=True)
+    fig = Figure()
+    axis = fig.add_subplot(111)
+    axis.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="black",
+             align="edge")
+    return fig
 
 @app.route("/")
 @app.route("/index")

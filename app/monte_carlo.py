@@ -15,10 +15,10 @@ def basic_monte_carlo_sim(num_nodes, num_chains, table=True):
     We are concerned with the distributions of knot formation as well as
     number of attempts."""
     raw_data = np.zeros((num_chains,2)) # first element is result of is_knotted, second is num attempts
-    if table:
-        print("+-----------------+---  MONTE CARLO SIMULATION ---+----------------+")
-        print("|    CHAIN ID     | ALEXANDER POLYNOMIAL (t = -1) |   IS A KNOT?   |")
-        print("+-----------------+-------------------------------+----------------+")
+    # if table:
+    #     print("+-----------------+---  MONTE CARLO SIMULATION ---+----------------+")
+    #     print("|    CHAIN ID     | ALEXANDER POLYNOMIAL (t = -1) |   IS A KNOT?   |")
+    #     print("+-----------------+-------------------------------+----------------+")
     
     # run the simulation
     for i in np.arange(num_chains):
@@ -26,11 +26,17 @@ def basic_monte_carlo_sim(num_nodes, num_chains, table=True):
         alex_mat = populate_alexander_matrix(rot_saw_xy(chain), find_reg_project(chain), -1)
         alex_poly = evaluate_alexander_polynomial(alex_mat)
         is_knotted = not (alex_poly == 1)
-        if table:
-            print("|{:^17}|{:^31}|{:^16}|".format(i+1, alex_poly, is_knotted))
-            print("+-----------------+-------------------------------+----------------+")
+        if i % 100 == 0:
+            print("chain {}".format(i))
+        # if table:
+            # print("|{:^17}|{:^31}|{:^16}|".format(i+1, alex_poly, is_knotted))
+            # print("+-----------------+-------------------------------+----------------+")
 
         raw_data[i][0] = is_knotted
         raw_data[i][1] = num_attempts
+
+        # analyze the results
+        total_knots = len(np.where(raw_data[:,0]))
+        #attempt_stats = np.array([np.mean(raw_data[:,1]), np.std(raw_data[:,1])])
 
     return raw_data
