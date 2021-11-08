@@ -1,19 +1,13 @@
 import json
 
 import numpy as np
+from numpy.linalg import norm
 
 from .private.generate_binary_list import gen_all_bin_list
 
 sqrt_3 = 1.7320508075688772  # the distance between each link
 epsilon = 1.0e-12 # convenient small value for double comparison
 dirs = gen_all_bin_list(3) # all possible directions in cubic lattice
-
-
-def normalize_elems(array):
-    """return normalized version of array, using vector 2-norm."""
-    for i in np.arange(array.shape[0]):
-        array[i] = array[i] / np.linalg.norm(array[i])
-    return array
 
 
 # assume shape of arr is (n, m)
@@ -27,7 +21,7 @@ def index_of(seq, arr):
 
 # NOTE: generates a chain according to the probability dist. Does not test if
 # is closed nor whether is self-intersecting.
-def generate_chain(N):
+def generate_chain(N, pivot=False):
     """return a random walk 'chain' with N nodes.
     
     The method uses the 'worm in an apple' approach to generate the chain,
@@ -44,24 +38,38 @@ def generate_chain(N):
     chain - numpy array of nodes with shape (N, 3) - the generated random walk
     """
     node = np.zeros(3) # initialize first node at the origin
-    chain = []
-    chain.append(node) # add the initial node to our chain
-
+    chain = np.zeros((N, 3))
     dir = np.zeros(3) # initialize dir array before loop
     for i in np.arange(1, N):
         probs = special_prob_dist(N - i, node, dirs)
         new_dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
         # backwards movements are prohibited
         while np.array_equal(dir + new_dir, np.zeros(3)):
-            if abs(probs[index_of(new_dir, dirs)] - 1.0) < epsilon:
-                break
+            # silly case in which only possible new direction is neg of previous
+            if abs(probs[index_of(new_dir, dirs)] - 1.0) < epsilon: 
+                return None
             new_dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
-        dir = new_dir
         # vector addition of node and the chosen dir makes a new node
-        node = np.add(node, dir)
-        chain.append(node) # add the new node to our chain
+        node = np.add(node, new_dir)
 
-    return np.array(chain)
+        # we have an intersection
+        print("current node: {}, current chain: {}".format(node, chain))
+        if node in chain[:]: #FIXME: producing unexpected results
+            # if we are using model 2, then pivot the chain in a given direction
+            if pivot:
+                delta = 0.01 # this is the amount by which we pivot
+                phi = np.random.uniform(0, 2*np.pi)
+                theta = np.random.uniform(0, np.pi)
+                pivot_dir = np.zeros(3,)
+                pivot_dir[0] = np.cos(phi) * np.sin(theta)
+                pivot_dir[1] = np.sin(phi) * np.sin(theta)
+                pivot_dir[2] = np.cos(theta)
+                chain = np.add(chain, delta * pivot_dir)
+            else: return None
+        chain[i] = node
+        dir = new_dir
+
+    return chain
 
 
 # return weights for chosen directions given a prob dist (see ref paper)
@@ -126,16 +134,14 @@ def generate_closed_chain(N):
     # Note that attempts is for testing the efficiency of our alg
     attempts = 0
 
-    while not is_closed(chain) or is_self_intersecting(chain):
+    while chain is None: # None means is self-intersecting...
         chain = generate_chain(N)
         attempts += 1
         # if attempts % 50 == 0:
         #     print("Current number of attempts:" + str(attempts))
 
     chain = np.append(chain, np.zeros(3).reshape(1, 3), axis=0)
-    #print("Took " + str(attempts) + " attempts to generate closed chain")
-
-    return np.array([chain, attempts], dtype=object)
+    return np.array([chain, attempts], dtype=object) # turn into structured array
 
 
 # detects whether is self-intersecting iff there exist two of the same vertex
