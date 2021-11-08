@@ -11,8 +11,8 @@ from .generate_chain import generate_closed_chain
 from .monte_carlo import basic_monte_carlo_sim
 from .private.utilities import chain_to_JSON
 
-N  = 30
-NUM_CHAINS = 10000
+N  = 20
+NUM_CHAINS = 1000
 
 #from .projection import find_reg_project, rot_saw_xy
 # from .tests.intersect_unit_test import intersect_unit_test
@@ -48,18 +48,6 @@ def plot_png():
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
     return Response(output.getvalue(), mimetype='image/png')
-    # analyze the results
-    #total_knots = len(np.where(raw_data[:,0]))
-    #attempt_stats = np.array([np.mean(raw_data[:,1]), np.std(raw_data[:,1])])
-
-
-    #plt.plot(hist)
-    PLOT_NAME = "images/plot.png"
-    plt.savefig(PLOT_NAME)
-    plot.close()
-    print()
-    print("final results: total number of knots was {}".format(total_knots))
-    return render_template("index.html", plot=PLOT_NAME)
 
 
 def create_figure():
@@ -70,6 +58,7 @@ def create_figure():
     axis.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="black",
              align="edge")
     return fig
+
 
 @app.route("/")
 @app.route("/index")
