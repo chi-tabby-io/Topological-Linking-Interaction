@@ -53,17 +53,17 @@ def generate_chain(N, pivot):
         node = np.add(node, new_dir)
 
         # we have an intersection
-        if node.tolist() in chain.tolist(): #FIXME: producing unexpected results
+        if node.tolist() in chain.tolist(): 
             # if we are using model 2, then pivot the chain in a given direction
             if pivot:
-                delta = 0.3 # this is the amount by which we pivot interesting to play with
+                delta = 0.1 # this is the amount by which we pivot interesting to play with
                 phi = np.random.uniform(0, 2*np.pi)
                 theta = np.random.uniform(0, np.pi)
                 pivot_dir = np.zeros(3)
                 pivot_dir[0] = np.cos(phi) * np.sin(theta)
                 pivot_dir[1] = np.sin(phi) * np.sin(theta)
                 pivot_dir[2] = np.cos(theta)
-                chain = np.add(chain, delta * pivot_dir)
+                node = np.add(node, delta * pivot_dir)
             else: return None
         chain[i] = node
         dir = new_dir
@@ -139,7 +139,7 @@ def generate_closed_chain(N, pivot=False):
         # if attempts % 50 == 0:
         #     print("Current number of attempts:" + str(attempts))
 
-    chain = np.append(chain, np.zeros(3).reshape(1, 3), axis=0)
+    chain = np.append(chain, np.array([chain[0]]), axis=0)
     return np.array([chain, attempts], dtype=object) # turn into structured array
 
 

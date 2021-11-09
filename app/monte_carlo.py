@@ -9,8 +9,8 @@ from .private.utilities import rot_saw_xy
 from .projection import find_reg_project
 
 
-def basic_monte_carlo_sim(num_nodes, num_chains, table=True):
-    """return None. Print table and final statistics for monte carlo sim.
+def basic_monte_carlo_sim(num_nodes, num_chains, table=True, pivot=False):
+    """return raw_data. Print table and final statistics for monte carlo sim.
     
     We are concerned with the distributions of knot formation as well as
     number of attempts."""
@@ -22,8 +22,9 @@ def basic_monte_carlo_sim(num_nodes, num_chains, table=True):
     
     # run the simulation
     for i in np.arange(num_chains):
-        chain, num_attempts = generate_closed_chain(num_nodes)
-        alex_mat = populate_alexander_matrix(rot_saw_xy(chain), find_reg_project(chain), -1)
+        chain, num_attempts = generate_closed_chain(num_nodes, pivot)
+        print(chain)
+        alex_mat = populate_alexander_matrix(rot_saw_xy(chain)[:-1], find_reg_project(chain)[:-1], -1)
         alex_poly = evaluate_alexander_polynomial(alex_mat)
         is_knotted = not (alex_poly == 1)
         if i % 100 == 0:

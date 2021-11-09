@@ -11,10 +11,11 @@ from .generate_chain import generate_closed_chain
 from .monte_carlo import basic_monte_carlo_sim
 from .private.utilities import chain_to_JSON
 
-N  = 20
-NUM_CHAINS = 1000
+N  = 100
+NUM_CHAINS = 200
 
-#from .projection import find_reg_project, rot_saw_xy
+from .projection import find_reg_project, rot_saw_xy
+
 # from .tests.intersect_unit_test import intersect_unit_test
 # from .tests.populate_alexander_matrix_unit_test import \
 #     populate_alexander_matrix_unit_test
@@ -34,30 +35,27 @@ def data_helper():
         return "OK", 200
 
     else: # GET request
-        #basic_monte_carlo_sim(N, NUM_CHAINS, table=False)
-        
-        chain = generate_closed_chain(N)[0]
-         
+        chain = generate_closed_chain(N, pivot=True)[0]
         payload = chain_to_JSON(chain)
         return jsonify(payload)
 
 
-@app.route("/plot.png", methods=["GET"])
-def plot_png():
-    fig = create_figure()
-    output = io.BytesIO()
-    FigureCanvas(fig).print_png(output)
-    return Response(output.getvalue(), mimetype='image/png')
+# @app.route("/plot.png", methods=["GET"])
+# def plot_png():
+#     fig = create_figure()
+#     output = io.BytesIO()
+#     FigureCanvas(fig).print_png(output)
+#     return Response(output.getvalue(), mimetype='image/png')
 
 
-def create_figure():
-    raw_data = basic_monte_carlo_sim(N, NUM_CHAINS, table=True)
-    hist, bin_edges = np.histogram(raw_data[:,1], 50, density=True)
-    fig = Figure()
-    axis = fig.add_subplot(111)
-    axis.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="black",
-             align="edge")
-    return fig
+# def create_figure():
+#     raw_data = basic_monte_carlo_sim(N, NUM_CHAINS, table=True, pivot=True)
+#     hist, bin_edges = np.histogram(raw_data[:,1], 50, density=True)
+#     fig = Figure()
+#     axis = fig.add_subplot(111)
+#     axis.bar(bin_edges[:-1], hist, width=np.diff(bin_edges), edgecolor="black",
+#              align="edge")
+#     return fig
 
 
 @app.route("/")
