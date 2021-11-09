@@ -35,7 +35,7 @@ def data_helper():
         return "OK", 200
 
     else: # GET request
-        chain = generate_closed_chain(N, pivot=True)[0]
+        chain = generate_closed_chain(N, shift=True)[0]
         payload = chain_to_JSON(chain)
         return jsonify(payload)
 
@@ -49,7 +49,7 @@ def data_helper():
 
 
 # def create_figure():
-#     raw_data = basic_monte_carlo_sim(N, NUM_CHAINS, table=True, pivot=True)
+#     raw_data = basic_monte_carlo_sim(N, NUM_CHAINS, table=True, shift=True)
 #     hist, bin_edges = np.histogram(raw_data[:,1], 50, density=True)
 #     fig = Figure()
 #     axis = fig.add_subplot(111)
