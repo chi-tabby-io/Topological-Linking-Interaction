@@ -12,7 +12,7 @@ from .monte_carlo import basic_monte_carlo_sim
 from .private.utilities import chain_to_JSON
 
 N  = 20
-NUM_CHAINS = 1
+NUM_CHAINS = 1000
 
 #from .projection import find_reg_project, rot_saw_xy
 # from .tests.intersect_unit_test import intersect_unit_test

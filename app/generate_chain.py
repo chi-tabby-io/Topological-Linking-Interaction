@@ -21,7 +21,7 @@ def index_of(seq, arr):
 
 # NOTE: generates a chain according to the probability dist. Does not test if
 # is closed nor whether is self-intersecting.
-def generate_chain(N, pivot=False):
+def generate_chain(N, pivot):
     """return a random walk 'chain' with N nodes.
     
     The method uses the 'worm in an apple' approach to generate the chain,
@@ -53,14 +53,13 @@ def generate_chain(N, pivot=False):
         node = np.add(node, new_dir)
 
         # we have an intersection
-        print("current node: {}, current chain: {}".format(node, chain))
-        if node in chain[:]: #FIXME: producing unexpected results
+        if node.tolist() in chain.tolist(): #FIXME: producing unexpected results
             # if we are using model 2, then pivot the chain in a given direction
             if pivot:
-                delta = 0.01 # this is the amount by which we pivot
+                delta = 0.3 # this is the amount by which we pivot interesting to play with
                 phi = np.random.uniform(0, 2*np.pi)
                 theta = np.random.uniform(0, np.pi)
-                pivot_dir = np.zeros(3,)
+                pivot_dir = np.zeros(3)
                 pivot_dir[0] = np.cos(phi) * np.sin(theta)
                 pivot_dir[1] = np.sin(phi) * np.sin(theta)
                 pivot_dir[2] = np.cos(theta)
@@ -125,9 +124,9 @@ def is_closed(chain):
 
 
 # essentially uses the functions above as helpers to generate a closed chain
-def generate_closed_chain(N):
+def generate_closed_chain(N, pivot=False):
 
-    chain = generate_chain(N)
+    chain = generate_chain(N, pivot)
 
     # this step may take a while...but our pdf, once implemented, gives us a
     # greater chance that the randomly generated chain will be closed
@@ -135,7 +134,7 @@ def generate_closed_chain(N):
     attempts = 0
 
     while chain is None: # None means is self-intersecting...
-        chain = generate_chain(N)
+        chain = generate_chain(N, pivot)
         attempts += 1
         # if attempts % 50 == 0:
         #     print("Current number of attempts:" + str(attempts))
