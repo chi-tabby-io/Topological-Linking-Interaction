@@ -23,7 +23,7 @@ def find_reg_project(saw):
     """
     rotated_saw = rot_saw_xy(saw)
     projection = []
-    for vertex in rotated_saw:
+    for vertex in saw:
         project_vertex = vertex
         project_vertex[2] = 0.0 # project to xy plane :)
         projection.append(project_vertex)

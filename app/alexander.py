@@ -1,10 +1,11 @@
 
 import numpy as np
 
-from .private.utilities import pre_alexander_compile
+from .private.utilities import pre_alexander_compile, rot_saw_xy
+from .projection import find_reg_project
 
 
-def populate_alexander_matrix(saw, proj, t):
+def populate_alexander_matrix(saw, t):
    """return alexander matrix of the given saw.
    
    We are using the logic from the guiding paper for this project (soon to 
@@ -20,7 +21,9 @@ def populate_alexander_matrix(saw, proj, t):
    return value:
    alex_mat - numpy array with shape (I, I) where I is the number of underpasses.
    """
-   underpass_info = pre_alexander_compile(saw, proj)
+   rot_saw = rot_saw_xy(saw)
+   proj = find_reg_project(saw)
+   underpass_info = pre_alexander_compile(rot_saw, proj)
    I = np.shape(underpass_info)[0]
    alex_mat = np.zeros((I, I))
    
@@ -61,15 +64,3 @@ def evaluate_alexander_polynomial(alex_mat):
    # TODO: figure out power of t we need...or better work around
    final_result = int(np.round(abs(minor_det)))
    return final_result
-   # if np.shape(alex_mat)[0] == 0:
-   #    print("something is wrong with this chain, or degenerate")
-   #    return None
-   # elif np.shape(alex_mat)[0] == 1:
-   #    return int(np.round(abs(alex_mat[0])))
-   # else:
-   #    minor = np.delete(alex_mat, 0, 0) # delete first row
-   #    minor = np.delete(minor, 0, 1) # delete first colum
-   #    minor_det = det(minor)
-   #    # TODO: figure out power of t we need...or better work around
-   #    final_result = int(np.round(abs(minor_det)))
-   #    return None

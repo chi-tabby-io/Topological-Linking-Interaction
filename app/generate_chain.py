@@ -1,16 +1,22 @@
 import numpy as np
-from scipy.spatial.distance import euclidean
+from scipy.spatial.distance import cdist, euclidean
 
 from .private.generate_binary_list import gen_all_bin_list
+from .private.utilities import pivot_rotations
 
 sqrt_3 = 1.7320508075688772  # the distance between each link
 epsilon = 1.0e-12 # convenient small value for double comparison
 dirs = gen_all_bin_list(3) # all possible directions in cubic lattice
 
+np.random.seed(0)
+
+
+def v_dot(a): return lambda b: np.dot(a,b)
+
 
 # NOTE: generates a chain according to the probability dist. Does not test if
 # is closed nor whether is self-intersecting.
-def generate_closed_chain_helper(N, shift=False):
+def generate_chain_helper_worm(N, shift=False):
     """return a random walk 'chain' with N nodes.
     
     The method uses the 'worm in an apple' approach to generate the chain,
@@ -42,8 +48,10 @@ def generate_closed_chain_helper(N, shift=False):
             new_dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
         node = np.add(node, new_dir)
 
+        chain_so_far = chain[:i]
+        unique_chain_so_far = np.unique(chain_so_far, axis=0)
         # we have an intersection
-        if node.tolist() in chain.tolist(): 
+        if len(unique_chain_so_far) != len(chain_so_far):
             # if we are using model 2, then shift the chain in a given direction
             if shift:
                 delta = 0.1
@@ -58,6 +66,39 @@ def generate_closed_chain_helper(N, shift=False):
         chain[i] = node
         dir = new_dir
 
+    return chain
+
+
+def generate_chain_helper_pivot(N, num_it=1000):
+    sym_ops = pivot_rotations()
+    chain = np.dstack((np.arange(N), np.zeros(N), np.zeros(N)))[0]
+    for i in np.arange(num_it):
+        pivot = np.random.randint(1, N-1)
+        side = np.random.choice([-1,1])
+
+        if side == 1:
+            old_chain = chain[0:pivot+1]
+            temp_chain = chain[pivot+1:]
+        else:
+            old_chain = chain[pivot:]
+            temp_chain = chain[0:pivot]
+        
+        sym_op = sym_ops[np.random.randint(len(sym_ops))] # TODO: change all other examples of this to len
+        new_chain = np.apply_along_axis(v_dot(sym_op), 1, temp_chain - chain[pivot]) + chain[pivot]
+
+        overlap = cdist(new_chain, old_chain)
+        overlap = overlap.flatten()
+
+        if len(np.nonzero(overlap)[0]) != len(overlap):
+            continue
+        else:
+            if side == 1:
+                chain = np.concatenate((old_chain, new_chain), axis=0)
+            elif side == -1:
+                chain = np.concatenate((new_chain, old_chain), axis=0)
+
+    chain -= np.int_(np.mean(chain, axis=0))
+    #TODO: check if closed, if not, return None for generate closed chain to handle
     return chain
 
 
@@ -104,13 +145,21 @@ def special_prob_dist(n, node, dirs):
     return probs
 
 
-def generate_closed_chain(N, shift=False):
+def generate_closed_chain(N, shift=False, pivot=False):
     
-    chain = generate_closed_chain_helper(N, shift)
-    attempts = 0
+    global chain # check this declaration
+
+    if pivot:
+        chain = generate_chain_helper_pivot(N)
+    else:
+        chain = generate_chain_helper_worm(N, shift)
+        attempts = 0
 
     while chain is None: # None means is self-intersecting...
-        chain = generate_closed_chain_helper(N, shift)
+        if pivot:
+            chain = generate_chain_helper_pivot(N)
+        else:
+            chain = generate_chain_helper_worm(N, shift)
         attempts += 1
         # if attempts % 50 == 0:
         #     print("Current number of attempts:" + str(attempts))

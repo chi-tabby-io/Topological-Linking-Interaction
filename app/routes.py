@@ -7,12 +7,13 @@ from matplotlib.figure import Figure
 
 from app import app
 
+from .alexander import populate_alexander_matrix
 from .generate_chain import generate_closed_chain
 from .monte_carlo import basic_monte_carlo_sim
 from .private.utilities import chain_to_JSON
 
-N  = 100
-NUM_CHAINS = 200
+N  = 50
+NUM_CHAINS = 500
 
 from .projection import find_reg_project, rot_saw_xy
 
@@ -35,8 +36,12 @@ def data_helper():
         return "OK", 200
 
     else: # GET request
-        chain = generate_closed_chain(N, shift=True)[0]
-        payload = chain_to_JSON(chain)
+        #chain = generate_closed_chain(N, shift=True)[0]
+        chain = np.array([[0,0,0], [1,1,1],[0.5,1,0],[0.5,0,0],[1,0,1],[0,1,1],[-1,1,0],[-1,0,0],[-1,-1,-1],[0,-1,0],[0,0,0]])
+        alex_mat = populate_alexander_matrix(chain, -1)
+        print(alex_mat)
+        project = find_reg_project(chain)
+        payload = chain_to_JSON(project)
         return jsonify(payload)
 
 
@@ -49,7 +54,7 @@ def data_helper():
 
 
 # def create_figure():
-#     raw_data = basic_monte_carlo_sim(N, NUM_CHAINS, table=True, shift=True)
+#     raw_data = basic_monte_carlo_sim(N, NUM_CHAINS, table=False, shift=True)
 #     hist, bin_edges = np.histogram(raw_data[:,1], 50, density=True)
 #     fig = Figure()
 #     axis = fig.add_subplot(111)

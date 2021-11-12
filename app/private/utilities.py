@@ -4,6 +4,15 @@ import numpy as np
 
 # ============================ CHAIN UTILITIES ============================= #
 
+def pivot_rotations():
+   rotations_array = []
+   for angle in (np.pi / 2, np.pi, 1.5 * np.pi):
+      rotations_array.append(rot_matrix_x_3d(angle))
+      rotations_array.append(rot_matrix_y_3d(angle))
+      rotations_array.append(rot_matrix_z_3d(angle))
+   return np.array(rotations_array)
+
+
 class NumpyArrayEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
@@ -31,8 +40,8 @@ def chain_to_JSON(chain, file_dumps=False):
 
 # ========================= PROJECTION UTILITIES =========================== #
 
-def rot_matrix_x(alpha):
-    """return rotation matrix about x-axis by angle alpha"""
+def rot_matrix_x_3d(alpha):
+    """return rotation matrix about x-axis by angle alpha."""
     return np.array(
         [
             [1.0, 0.0, 0.0],
@@ -42,8 +51,8 @@ def rot_matrix_x(alpha):
     )
 
 
-def rot_matrix_y(alpha):
-    """return rotation matrix about Y-axis by angle alpha"""
+def rot_matrix_y_3d(alpha):
+    """return rotation matrix about Y-axis by angle alpha."""
     return np.array(
         [
             [np.cos(alpha), 0.0, np.sin(alpha)],
@@ -51,6 +60,17 @@ def rot_matrix_y(alpha):
             [-np.sin(alpha), 0.0, np.cos(alpha)],
         ]
     )
+
+
+def rot_matrix_z_3d(alpha):
+   """return rotation matrix about Z-axis by angle alpha."""
+   return np.array(
+      [
+         [np.cos(alpha), np.sin(alpha), 0.0],
+         [-np.sin(alpha), np.cos(alpha), 0.0],
+         [0.0, 0.0, 1.0],
+      ]
+   )
 
 
 def rot_saw_xy(saw):
@@ -68,8 +88,8 @@ def rot_saw_xy(saw):
     """
     alpha = -np.pi / 3.0
     beta = np.pi / 6.0
-    x_rot = rot_matrix_x(alpha)
-    y_rot = rot_matrix_y(beta)
+    x_rot = rot_matrix_x_3d(alpha)
+    y_rot = rot_matrix_y_3d(beta)
     rotated_saw = []
     for vertex in saw:
         rot_vertex = np.matmul(x_rot, vertex)
