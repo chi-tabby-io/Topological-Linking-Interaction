@@ -36,12 +36,14 @@ def data_helper():
         return "OK", 200
 
     else: # GET request
-        #chain = generate_closed_chain(N, shift=True)[0]
-        chain = np.array([[0,0,0], [1,1,1],[0.5,1,0],[0.5,0,0],[1,0,1],[0,1,1],[-1,1,0],[-1,0,0],[-1,-1,-1],[0,-1,0],[0,0,0]])
-        alex_mat = populate_alexander_matrix(chain, -1)
-        print(alex_mat)
-        project = find_reg_project(chain)
-        payload = chain_to_JSON(project)
+        chain_and_attempts = generate_closed_chain(N, pivot=True)
+        # chain = np.array([[0,0,0], [1,1,1],[0.5,1,0],[0.5,0,0],[1,0,1],[0,1,1],[-1,1,0],[-1,0,0],[-1,-1,-1],[0,-1,0],[0,0,0]])
+        chain = chain_and_attempts['chain'][0]
+        print(chain_and_attempts['attempts'])
+        # alex_mat = populate_alexander_matrix(chain, -1)
+        # print(alex_mat)
+        # project = find_reg_project(chain)
+        payload = chain_to_JSON(chain)
         return jsonify(payload)
 
 

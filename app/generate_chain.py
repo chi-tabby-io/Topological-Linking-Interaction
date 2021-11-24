@@ -1,17 +1,13 @@
 import numpy as np
-from scipy.spatial.distance import cdist, euclidean
-
+from math import isclose
+from numpy.linalg import norm
+from scipy.spatial.distance import cdist
 from .private.generate_binary_list import gen_all_bin_list
 from .private.utilities import pivot_rotations
 
-sqrt_3 = 1.7320508075688772  # the distance between each link
-epsilon = 1.0e-12 # convenient small value for double comparison
 dirs = gen_all_bin_list(3) # all possible directions in cubic lattice
 
 np.random.seed(0)
-
-
-def v_dot(a): return lambda b: np.dot(a,b)
 
 
 # NOTE: generates a chain according to the probability dist. Does not test if
@@ -38,7 +34,8 @@ def generate_chain_helper_worm(N, shift=False):
 
     for i in np.arange(1, N):
         probs = special_prob_dist(N - i, node, dirs)
-        new_dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
+        new_dir = np.random.choice(dirs, p=probs) # TODO: test this. why not do this before?
+        #new_dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
         # backwards movements are prohibited
         while np.array_equal(dir + new_dir, np.zeros(3)):
             # silly case in which only possible new direction is neg of previous
@@ -50,6 +47,7 @@ def generate_chain_helper_worm(N, shift=False):
 
         chain_so_far = chain[:i]
         unique_chain_so_far = np.unique(chain_so_far, axis=0)
+        #TODO: debug below
         # we have an intersection
         if len(unique_chain_so_far) != len(chain_so_far):
             # if we are using model 2, then shift the chain in a given direction
@@ -69,9 +67,19 @@ def generate_chain_helper_worm(N, shift=False):
     return chain
 
 
+def v_dot(a): return lambda b: np.dot(a,b)
+
+
+#alg from: https://biophyenvpol.wordpress.com/2014/11/13/pivot-algorithm-of-self-avoiding-chain-using-python-and-cython/
 def generate_chain_helper_pivot(N, num_it=1000):
-    sym_ops = pivot_rotations()
+    rotate_matrices = np.array([[[1,0,0],[0,0,-1],[0,1,0]],[[1,0,0],[0,-1,0],[0,0,-1]]
+        ,[[1,0,0],[0,0,1],[0,-1,0]],[[0,0,1],[0,1,0],[-1,0,0]]
+        ,[[-1,0,0],[0,1,0],[0,0,-1]],[[0,0,-1],[0,1,0],[-1,0,0]]
+        ,[[0,-1,0],[1,0,0],[0,0,1]],[[-1,0,0],[0,-1,0],[0,0,1]]
+        ,[[0,1,0],[-1,0,0],[0,0,1]]])
+
     chain = np.dstack((np.arange(N), np.zeros(N), np.zeros(N)))[0]
+
     for i in np.arange(num_it):
         pivot = np.random.randint(1, N-1)
         side = np.random.choice([-1,1])
@@ -83,7 +91,7 @@ def generate_chain_helper_pivot(N, num_it=1000):
             old_chain = chain[pivot:]
             temp_chain = chain[0:pivot]
         
-        sym_op = sym_ops[np.random.randint(len(sym_ops))] # TODO: change all other examples of this to len
+        sym_op = rotate_matrices[np.random.randint(len(rotate_matrices))] # TODO: change all other examples of this to len
         new_chain = np.apply_along_axis(v_dot(sym_op), 1, temp_chain - chain[pivot]) + chain[pivot]
 
         overlap = cdist(new_chain, old_chain)
@@ -97,9 +105,11 @@ def generate_chain_helper_pivot(N, num_it=1000):
             elif side == -1:
                 chain = np.concatenate((new_chain, old_chain), axis=0)
 
-    chain -= np.int_(np.mean(chain, axis=0))
+    # chain -= np.int_(np.mean(chain, axis=0))
     #TODO: check if closed, if not, return None for generate closed chain to handle
-    return chain
+    if is_closed(chain):
+        return chain
+    return None
 
 
 def special_prob_dist(n, node, dirs):
@@ -145,15 +155,16 @@ def special_prob_dist(n, node, dirs):
     return probs
 
 
+#TODO: debug logical error: pivot alg works, just not "closed"
 def generate_closed_chain(N, shift=False, pivot=False):
-    
-    global chain # check this declaration
+
+    chain = None
+    attempts = 0
 
     if pivot:
         chain = generate_chain_helper_pivot(N)
     else:
         chain = generate_chain_helper_worm(N, shift)
-        attempts = 0
 
     while chain is None: # None means is self-intersecting...
         if pivot:
@@ -161,14 +172,17 @@ def generate_closed_chain(N, shift=False, pivot=False):
         else:
             chain = generate_chain_helper_worm(N, shift)
         attempts += 1
-        # if attempts % 50 == 0:
-        #     print("Current number of attempts:" + str(attempts))
+        if attempts % 100 == 0:
+            print("Current number of attempts: {}".format(attempts))
     chain = np.append(chain, np.array([chain[0]]), axis=0)
-    return np.array([chain, attempts], dtype=object) # TODO: turn into structured array
+    dtype = [('chain', np.float64, (N+1,3)), ('attempts', np.uintc)]
+    return np.array([(chain.tolist(), attempts)], dtype=dtype)
 
+
+SQRT_3 = 1.7320508075688772  # the distance between each link
 
 def is_closed(chain):
-    return True if ((euclidean(chain[0], chain[-1]) - sqrt_3) < epsilon) else False
+    return True if isclose(norm(chain[0] - chain[-1]), SQRT_3) else False
 
 
 def is_self_intersecting(chain):
