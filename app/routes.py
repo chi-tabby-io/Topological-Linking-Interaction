@@ -12,7 +12,7 @@ from .generate_chain import generate_closed_chain
 from .monte_carlo import basic_monte_carlo_sim
 from .private.utilities import chain_to_JSON
 
-N  = 50
+N  = 20
 NUM_CHAINS = 500
 
 from .projection import find_reg_project, rot_saw_xy
@@ -36,7 +36,7 @@ def data_helper():
         return "OK", 200
 
     else: # GET request
-        chain_and_attempts = generate_closed_chain(N, pivot=True)
+        chain_and_attempts = generate_closed_chain(N, shift=True)
         # chain = np.array([[0,0,0], [1,1,1],[0.5,1,0],[0.5,0,0],[1,0,1],[0,1,1],[-1,1,0],[-1,0,0],[-1,-1,-1],[0,-1,0],[0,0,0]])
         chain = chain_and_attempts['chain'][0]
         print(chain_and_attempts['attempts'])
