@@ -28,55 +28,33 @@ def generate_chain_helper_worm(N, shift=False):
     return value:
     chain - numpy array of nodes with shape (N, 3) - the generated random walk
     """
-    node = np.zeros(3) 
     chain = np.zeros((N, 3))
+    node = chain[0]
     dir = np.zeros(3) 
 
     for i in np.arange(1, N):
         probs = special_prob_dist(N - i, node, dirs)
-        new_dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
+        dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
+        new_node = np.add(node, dir)
 
-        while np.array_equal(dir + new_dir, np.zeros(3)): # backwards steps prohibited
-            # silly case in which only possible new direction is neg of previous
-            index_of_dir = np.where((dirs == new_dir).all(1))[0][0]
-            if isclose(probs[index_of_dir], 1.0):
-                return None
-            new_dir = dirs[np.random.choice(dirs.shape[0], p=probs)]
-        node = np.add(node, new_dir)
+        j = 0
+        while any(np.equal(chain[:i], new_node).all(1)):
+            # before doing anything, check whether we are locked out (think snake)
+            surrounding = dirs + node
+            chain_as_set = {tuple(node) for node in chain[:i]}
+            surrounding_as_set = {tuple(node) for node in surrounding}
+            if chain_as_set.intersection(surrounding_as_set) is surrounding_as_set:
+                return None # No remaining dirs to choose from: give up this attempt
+            remaining_surrounding = np.array(list(surrounding_as_set.difference(chain_as_set)))
+            new_node = remaining_surrounding[np.random.choice(remaining_surrounding.shape[0])]
 
-        # TODO: discussion of how authors do this is quite vage, so have to debug
-        if any(np.equal(chain[:i], node).all(1)):
-            if shift:
-                while True:
-                    shift_dir = dirs[np.random.choice(dirs.shape[0])]
-                    shift_by = 0.5
-                    node = np.add(node, shift_by * shift_dir)
-                    if not any(np.equal(chain[:i], node).all(1)):
-                        break 
+            j += 1
+            if j == 10000:
+                print("probs: {} and node {}\nchain: {}".format(probs, i, chain))
 
-            else: return None
-
-        # chain_so_far = chain[:i]
-        # unique_chain_so_far = np.unique(chain_so_far, axis=0)
-        # #TODO: debug below
-        # # we have an intersection
-        # if len(unique_chain_so_far) != len(chain_so_far):
-        #     # if we are using model 2, then shift the chain in a given direction
-        #     if shift:
-        #         # shift_dir = dirs[np.random.choice(dirs.shape[0])]
-        #         # temp_node = np.add(node, shift_dir)
-        #         delta = 0.1
-        #         phi = np.random.uniform(0, 2*np.pi)
-        #         theta = np.random.uniform(0, np.pi)
-        #         shift_dir = np.zeros(3)
-        #         shift_dir[0] = np.cos(phi) * np.sin(theta)
-        #         shift_dir[1] = np.sin(phi) * np.sin(theta)
-        #         shift_dir[2] = np.cos(theta)
-        #         node = np.add(node, delta * shift_dir)
-        #     else: return None
-        chain[i] = node
-        dir = new_dir
-
+        chain[i] = new_node
+        node = new_node
+    
     return chain
 
 
@@ -84,7 +62,7 @@ def v_dot(a): return lambda b: np.dot(a,b)
 
 
 #alg from: https://biophyenvpol.wordpress.com/2014/11/13/pivot-algorithm-of-self-avoiding-chain-using-python-and-cython/
-def generate_chain_helper_pivot(N, num_it=1000):
+def generate_chain_helper_pivot(N, num_it):
     rotate_matrices = np.array([[[1,0,0],[0,0,-1],[0,1,0]],[[1,0,0],[0,-1,0],[0,0,-1]]
         ,[[1,0,0],[0,0,1],[0,-1,0]],[[0,0,1],[0,1,0],[-1,0,0]]
         ,[[-1,0,0],[0,1,0],[0,0,-1]],[[0,0,-1],[0,1,0],[-1,0,0]]
@@ -120,9 +98,7 @@ def generate_chain_helper_pivot(N, num_it=1000):
 
     chain -= chain[0]
     # May not want to use this method, very low prob of closing...
-    if is_closed(chain):
-        return chain
-    return None
+    return chain
 
 
 def special_prob_dist(n, node, dirs):
@@ -168,34 +144,35 @@ def special_prob_dist(n, node, dirs):
     return probs
 
 
-#TODO: debug logical error: pivot alg works, just not "closed"
-def generate_closed_chain(N, shift=False, pivot=False):
-
+def generate_closed_chain(N, shift=True, num_it=1000, pivot=False):
     chain = None
     attempts = 0
 
-    if pivot:
-        chain = generate_chain_helper_pivot(N)
-    else:
-        chain = generate_chain_helper_worm(N, shift)
-
-    while chain is None: # None means is self-intersecting...
+    while True:
+        
         if pivot:
-            chain = generate_chain_helper_pivot(N)
+            chain = generate_chain_helper_pivot(N, num_it)
         else:
             chain = generate_chain_helper_worm(N, shift)
+        
         attempts += 1
-        if attempts % 10 == 0:
-            print("Current number of attempts: {}".format(attempts))
+        if is_closed(chain):
+            break
+    
+    # chain length is N + 1, just so we get that last link in within visualization
+    # TODO: change all functions internal to python so that we have len(chain) == 20
+    # only within our javascript code will we add the extra origin node (because why
+    # else do we need this node?) 
     chain = np.append(chain, np.array([chain[0]]), axis=0)
     dtype = [('chain', np.float64, (N+1,3)), ('attempts', np.uintc)]
-    return np.array([(chain.tolist(), attempts)], dtype=dtype)
+    return np.array((chain.tolist(), attempts), dtype=dtype)
 
 
 SQRT_3 = 1.7320508075688772  # the distance between each link
 
 def is_closed(chain):
-    return True if isclose(norm(chain[0] - chain[-1]), SQRT_3) else False
+    if chain is None: return False
+    else: return True if isclose(norm(chain[0] - chain[-1]), SQRT_3) else False
 
 
 def is_self_intersecting(chain):
